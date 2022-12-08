@@ -25,6 +25,18 @@ function start() {
   // 👇 обработчик получения сообщения от пользователя
   bot.on("message", async (msg) => {
     console.log({ msg })
+    // msg = {
+    //   from: {
+    //     first_name: "Name",
+    //     last_name: "Surname",
+    //     username: "nickname",
+    //   },
+    //   chat: {
+    //     id: 123456789,
+    //   },
+    //   text: "message from user",
+    // }
+
     await makeResponse({
       firstName: msg.from.first_name,
       lastName: msg.from.last_name,
@@ -54,6 +66,8 @@ function start() {
       //todo - create user if he isn't in DB
 
       //todo - increase user.messages +1 if the user was in DB
+
+      // await handleUser(user)
 
       if (chatId === SWEET_CHAT_ID) {
         if (command === "/start") {
@@ -123,14 +137,16 @@ function start() {
 
       await bot.sendMessage(chatId, response, buttonOptions)
 
-      chatId !== CREATOR_CHAT_ID &&
-        (await bot.sendMessage(
+      if (chatId !== CREATOR_CHAT_ID) {
+        await bot.sendMessage(
           CREATOR_CHAT_ID,
           `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і отримав(-ла) відповідь "${response}"`
-        ))
+        )
+      }
     } catch (err) {
-      chatId !== CREATOR_CHAT_ID &&
-        (await bot.sendMessage(chatId, "Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊"))
+      if (chatId !== CREATOR_CHAT_ID) {
+        await bot.sendMessage(chatId, "Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊")
+      }
 
       await bot.sendMessage(
         CREATOR_CHAT_ID,
@@ -139,15 +155,9 @@ function start() {
     }
   }
 
-  async function checkUser(chatId) {
-    return await axios.get(`${DB_BASE_URL}/users/chatId/${chatId}`)
+  async function handleUser({ firstName, lastName, username, chatId }) {
+    await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
   }
-
-  async function createUser({ firstName, lastName, username, chatId }) {
-    return await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
-  }
-
-  //todo async function updateUser() {}
 
   function separateCommand(msg) {
     const msgArr = msg.split(" ")

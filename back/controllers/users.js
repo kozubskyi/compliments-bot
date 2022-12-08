@@ -46,13 +46,41 @@ usersController.post("/", async (req, res, next) => {
   try {
     const { firstName, lastName, username, chatId, messages = 1, groups = ["others"] } = req.body
 
-    const existingUser = await UserModel.findOne({ username })
+    const existingUser = await UserModel.findOne({ chatId })
 
-    if (existingUser) throw new HttpErrors.Conflict(`Користувач з username ${username} вже є у базі даних`)
+    if (existingUser) throw new HttpErrors.Conflict(`Користувач з chatId ${chatId} вже є у базі даних`)
 
-    const newUser = await UserModel.create({ firstName, lastName, username, chatId, groups })
+    const newUser = await UserModel.create({ firstName, lastName, username, chatId, messages, groups })
 
     res.status(201).send(newUser)
+  } catch (err) {
+    next(err)
+  }
+})
+
+usersController.patch("/:id", async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    const updatedUser = await UserModel.findByIdAndUpdate(id, req.body, { new: true })
+
+    if (!updatedUser) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`)
+
+    res.status(200).send(updatedUser)
+  } catch (err) {
+    next(err)
+  }
+})
+
+usersController.patch("/chatId/:chatId", async (req, res, next) => {
+  try {
+    const { chatId } = req.params
+
+    const updatedUser = await UserModel.findOneAndUpdate({ chatId }, req.body, { new: true })
+
+    if (!updatedUser) throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`)
+
+    res.status(200).send(updatedUser)
   } catch (err) {
     next(err)
   }
@@ -72,15 +100,15 @@ usersController.delete("/:id", async (req, res, next) => {
   }
 })
 
-usersController.patch("/:id", async (req, res, next) => {
+usersController.delete("/chatId/:chatId", async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { chatId } = req.params
 
-    const updatedUser = await UserModel.findByIdAndUpdate(id, req.body, { new: true })
+    const deletedUser = await UserModel.findOneAndDelete({ chatId })
 
-    if (!updatedUser) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`)
+    if (!deletedUser) throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`)
 
-    res.status(200).send(updatedUser)
+    res.status(200).send(deletedUser)
   } catch (err) {
     next(err)
   }

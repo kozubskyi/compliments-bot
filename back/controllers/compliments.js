@@ -38,16 +38,6 @@ complimentsController.post("/", async (req, res, next) => {
   }
 })
 
-complimentsController.delete("/:id", async (req, res, next) => {
-  try {
-    const deletedCompliment = await ComplimentModel.findByIdAndDelete(req.params.id)
-
-    res.status(200).send(deletedCompliment)
-  } catch (err) {
-    next(err)
-  }
-})
-
 complimentsController.patch("/:id", async (req, res, next) => {
   try {
     const updatedCompliment = await ComplimentModel.findByIdAndUpdate(
@@ -57,6 +47,16 @@ complimentsController.patch("/:id", async (req, res, next) => {
     )
 
     res.status(200).send(updatedCompliment)
+  } catch (err) {
+    next(err)
+  }
+})
+
+complimentsController.delete("/:id", async (req, res, next) => {
+  try {
+    const deletedCompliment = await ComplimentModel.findByIdAndDelete(req.params.id)
+
+    res.status(200).send(deletedCompliment)
   } catch (err) {
     next(err)
   }
