@@ -1,6 +1,7 @@
 const { Router } = require("express")
 const UserModel = require("../models/user")
 const HttpErrors = require("http-errors")
+const createDate = require("../helpers/create-date")
 
 const usersController = Router()
 
@@ -51,7 +52,7 @@ usersController.post("/", async (req, res, next) => {
 
     if (existingUser) throw new HttpErrors.Conflict(`Користувач з chatId ${chatId} вже є у базі даних`)
 
-    const newUser = await UserModel.create(req.body)
+    const newUser = await UserModel.create({ ...req.body, created: createDate() })
 
     res.status(201).send(newUser)
   } catch (err) {

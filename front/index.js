@@ -74,10 +74,6 @@ function start() {
     let buttonOptions = {}
 
     try {
-      //todo - create user if he isn't in DB
-
-      //todo - increase user.messages +1 if the user was in DB
-
       await handleUser(user)
 
       if (chatId === SWEET_CHAT_ID) {
@@ -86,9 +82,13 @@ function start() {
             "Лєнусік, привіт) 😘 Денис просив передати тобі багато компліментиків. Напиши або натисни /compliment і отримаєшь компліментик)"
         } else if (command === "/compliment") {
           const { data } = await axios.get(`${DB_BASE_URL}/compliments`)
-          const randomIndex = Math.floor(Math.random() * data.length)
 
-          response = data[randomIndex][1]
+          const randomIndex = Math.floor(Math.random() * data.length)
+          const { text, sentTimes, _id } = data[randomIndex]
+
+          response = text
+
+          await axios.patch(`${DB_BASE_URL}/compliments/${_id}`, { sentTimes: sentTimes + 1 })
         } else {
           response = "Я передам Денису те, що ти написала) 😘"
         }
@@ -99,10 +99,18 @@ function start() {
           await axios.post(`${DB_BASE_URL}/compliments`, { text: newData })
 
           response = "✅ Компліментик додано в базу даних"
+        } else if (adminCommand === "addall") {
+          await axios.post(`${DB_BASE_URL}/compliments/all`, JSON.parse(newData))
+
+          response = "✅ Всі компліментики додано в базу даних"
         } else if (adminCommand === "del") {
           await axios.delete(`${DB_BASE_URL}/compliments/${newData}`)
 
           response = "✅ Компліментик видалено з бази даних або такого і не було"
+        } else if (command === "/delall") {
+          await axios.delete(`${DB_BASE_URL}/compliments/`)
+
+          response = "✅ Всі компліментики видалено з бази даних"
         } else if (adminCommand === "mlr") {
           await bot.sendMessage(SWEET_CHAT_ID, newData)
 
@@ -115,7 +123,7 @@ function start() {
         } else if (command === "/all") {
           const { data } = await axios.get(`${DB_BASE_URL}/compliments`)
 
-          response = JSON.stringify(data)
+          response = JSON.stringify(data.map(({ text }) => ({ text })))
         } else if (command === "/allq") {
           const { data } = await axios.get(`${DB_BASE_URL}/compliments`)
 
@@ -169,14 +177,17 @@ function start() {
   async function handleUser({ firstName, lastName, username, chatId }) {
     const getAndUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`
 
-    const response = await axios.get(getAndUpdateUrl)
+    const { data } = await axios.get(getAndUpdateUrl)
 
-    const user = response.data
-
-    if (user) {
-      await axios.patch(getAndUpdateUrl, { messages: user.messages + 1 })
+    if (data) {
+      await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 })
     } else {
       await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
+
+      await bot.sendMessage(
+        CREATOR_CHAT_ID,
+        `ℹ️ Нового користувача "${firstName} ${lastName} <${username}> (${chatId})" додано в базу даних`
+      )
     }
   }
 

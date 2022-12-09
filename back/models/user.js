@@ -12,6 +12,8 @@ const schema = new Schema(
       enum: ["creator", "sweet", "family", "friend", "others"],
       default: "others",
     },
+    created: String,
+    // created: { type: Date, default: Date.now },
   },
   { versionKey: false }
 )
