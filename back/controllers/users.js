@@ -34,7 +34,8 @@ usersController.get("/chatId/:chatId", async (req, res, next) => {
 
     const user = await UserModel.findOne({ chatId })
 
-    if (!user) throw new HttpErrors.NotFound(`Користувача з чатом ${chatId} немає у базі даних`)
+    // 👇 не потрібна ця строка
+    // if (!user) throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`)
 
     res.status(200).send(user)
   } catch (err) {
@@ -44,13 +45,13 @@ usersController.get("/chatId/:chatId", async (req, res, next) => {
 
 usersController.post("/", async (req, res, next) => {
   try {
-    const { firstName, lastName, username, chatId, messages = 1, groups = ["others"] } = req.body
+    const { chatId } = req.body
 
     const existingUser = await UserModel.findOne({ chatId })
 
     if (existingUser) throw new HttpErrors.Conflict(`Користувач з chatId ${chatId} вже є у базі даних`)
 
-    const newUser = await UserModel.create({ firstName, lastName, username, chatId, messages, groups })
+    const newUser = await UserModel.create(req.body)
 
     res.status(201).send(newUser)
   } catch (err) {

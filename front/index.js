@@ -24,18 +24,7 @@ function start() {
 
   // 👇 обработчик получения сообщения от пользователя
   bot.on("message", async (msg) => {
-    console.log({ msg })
-    // msg = {
-    //   from: {
-    //     first_name: "Name",
-    //     last_name: "Surname",
-    //     username: "nickname",
-    //   },
-    //   chat: {
-    //     id: 123456789,
-    //   },
-    //   text: "message from user",
-    // }
+    // console.log({ msg })
 
     await makeResponse({
       firstName: msg.from.first_name,
@@ -44,6 +33,28 @@ function start() {
       chatId: msg.chat.id,
       command: msg.text,
     })
+
+    // msg = {
+    //   message_id: 1,
+    //   from: {
+    //     id: 123456789, // equal to chat.id
+    //     is_bot: false,
+    //     first_name: "Name",
+    //     last_name: "Surname",
+    //     username: "nickname",
+    //     language_code: "ru",
+    //   },
+    //   chat: {
+    //     id: 123456789, // equal to from.id
+    //     first_name: "Name",
+    //     last_name: "Surname",
+    //     username: "nickname",
+    //     type: "private", // channel, group, private, supergroup
+    //   },
+    //   date: 1234567890, // don't know the format
+    //   text: "user typed message",
+    //   entities: [[Object]],
+    // }
   })
 
   // 👇 Обработчик клика на кнопку (если она есть)
@@ -67,7 +78,7 @@ function start() {
 
       //todo - increase user.messages +1 if the user was in DB
 
-      // await handleUser(user)
+      await handleUser(user)
 
       if (chatId === SWEET_CHAT_ID) {
         if (command === "/start") {
@@ -150,13 +161,23 @@ function start() {
 
       await bot.sendMessage(
         CREATOR_CHAT_ID,
-        `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${err.message}"`
+        `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${err.response.data.message}"`
       )
     }
   }
 
   async function handleUser({ firstName, lastName, username, chatId }) {
-    await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
+    const getAndUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`
+
+    const response = await axios.get(getAndUpdateUrl)
+
+    const user = response.data
+
+    if (user) {
+      await axios.patch(getAndUpdateUrl, { messages: user.messages + 1 })
+    } else {
+      await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
+    }
   }
 
   function separateCommand(msg) {

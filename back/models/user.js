@@ -6,14 +6,12 @@ const schema = new Schema(
     lastName: String,
     username: { type: String, required: true },
     chatId: { type: Number, required: true },
-    messages: Number,
-    groups: [
-      {
-        type: String,
-        enum: ["creator", "sweet", "family", "friends", "others"],
-        default: "others",
-      },
-    ],
+    messages: { type: Number, default: 1 },
+    status: {
+      type: String,
+      enum: ["creator", "sweet", "family", "friend", "others"],
+      default: "others",
+    },
   },
   { versionKey: false }
 )
