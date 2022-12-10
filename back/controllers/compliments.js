@@ -9,7 +9,15 @@ complimentsController.get("/", async (req, res, next) => {
   try {
     const compliments = await ComplimentModel.find()
 
-    // console.log({ compliments })
+    res.status(200).send(compliments)
+  } catch (err) {
+    next(err)
+  }
+})
+
+complimentsController.get("/:for", async (req, res, next) => {
+  try {
+    const compliments = await ComplimentModel.find({ for: req.params.for })
 
     res.status(200).send(compliments)
   } catch (err) {

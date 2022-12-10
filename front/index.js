@@ -68,42 +68,40 @@ function start() {
   //   })
   // })
 
-  async function makeResponse(user) {
-    const { firstName, lastName, username, chatId, command } = user
+  async function makeResponse({ firstName, lastName, username, chatId, command }) {
     let response = null
     let buttonOptions = {}
 
     try {
-      await handleUser(user)
+      const user = await handleUser({ firstName, lastName, username, chatId, command })
 
       if (chatId === SWEET_CHAT_ID) {
         if (command === "/start") {
           response =
             "Лєнусік, привіт) 😘 Денис просив передати тобі багато компліментиків. Напиши або натисни /compliment і отримаєшь компліментик)"
         } else if (command === "/compliment") {
-          const { data } = await axios.get(`${DB_BASE_URL}/compliments`)
-
-          const randomIndex = Math.floor(Math.random() * data.length)
-          const { text, sentTimes, _id } = data[randomIndex]
+          const { text } = await getRandomCompliment("sweet")
 
           response = text
-
-          await axios.patch(`${DB_BASE_URL}/compliments/${_id}`, { sentTimes: sentTimes + 1 })
         } else {
           response = "Я передам Денису те, що ти написала) 😘"
         }
       } else if (chatId === CREATOR_CHAT_ID) {
         const [adminCommand, newData] = separateCommand(command)
 
-        if (adminCommand === "add") {
+        if (command === "/compliment") {
+          const { text } = await getRandomCompliment()
+
+          response = text
+        } else if (adminCommand === "-add") {
           await axios.post(`${DB_BASE_URL}/compliments`, { text: newData })
 
           response = "✅ Компліментик додано в базу даних"
-        } else if (adminCommand === "addall") {
+        } else if (adminCommand === "-addall") {
           await axios.post(`${DB_BASE_URL}/compliments/all`, JSON.parse(newData))
 
           response = "✅ Всі компліментики додано в базу даних"
-        } else if (adminCommand === "del") {
+        } else if (adminCommand === "-del") {
           await axios.delete(`${DB_BASE_URL}/compliments/${newData}`)
 
           response = "✅ Компліментик видалено з бази даних або такого і не було"
@@ -111,11 +109,11 @@ function start() {
           await axios.delete(`${DB_BASE_URL}/compliments/`)
 
           response = "✅ Всі компліментики видалено з бази даних"
-        } else if (adminCommand === "mlr") {
+        } else if (adminCommand === "-mlr") {
           await bot.sendMessage(SWEET_CHAT_ID, newData)
 
           response = "✅ Повідомлення Лєнусічке відправлено"
-        } else if (adminCommand === "msg") {
+        } else if (adminCommand === "-msg") {
           const [receiverChatId, text] = separateCommand(newData)
 
           await bot.sendMessage(Number(receiverChatId), text)
@@ -131,17 +129,30 @@ function start() {
         } else if (command === "/help") {
           response = `
         🗣️ Команди:
-        "add _" - додати у базу даних новий компліментик з текстом _;
-        "del _" - видалити з бази даних компліментик з текстом _;
-        "mlr _" - відправити повідомлення Олені Рак з текстом _;
-        "msg _ __" - відправити повідомлення користувачу з chatId _ і текстом __;
+        "-add _" - додати у базу даних новий компліментик з текстом _;
+        "-addall _" - додати в базу даних усі компліментики масиву _;
+        "-del _" - видалити з бази даних компліментик з текстом _;
+        "/delall" - видалити всі компліментики з бази даних;
+        "-mlr _" - відправити повідомлення Олені Рак з текстом _;
+        "-msg _ __" - відправити повідомлення користувачу з chatId _ і текстом __;
         "/all" - отримати entries усіх компліментиков;
-        "/allq - отримати кількість усіх компліментиков у базі даних.
+        "/allq" - отримати кількість усіх компліментиков у базі даних;
+        "/help" - отримати список усіх можливих команд;
+        "/test" - тестова команда.
         `
+        } else if (command === "/test") {
+          response = "✅ Тестова команда завершилася успішно"
         } else {
           response = "⚠️ Некоректна команда"
         }
       } else {
+        if (command === "/start") {
+          response = "Привіт) я телеграм-бот iDen. Напиши або натисни /compliment і отримаєшь компліментик"
+        } else if (command === "/compliment") {
+          const { text } = await getRandomCompliment("others")
+
+          response = text
+        }
         if (command === "/start" || command === "/compliment") {
           response = "Нажаль Ви не Олена Рак, а компліментики я роблю лише їй 🤷‍♂️"
           // buttonOptions = {
@@ -169,7 +180,7 @@ function start() {
 
       await bot.sendMessage(
         CREATOR_CHAT_ID,
-        `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${err.response.data.message}"`
+        `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${err}"`
       )
     }
   }
@@ -179,16 +190,38 @@ function start() {
 
     const { data } = await axios.get(getAndUpdateUrl)
 
+    let response = null
+
     if (data) {
-      await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 })
+      response = await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 })
     } else {
-      await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
+      response = await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
 
       await bot.sendMessage(
         CREATOR_CHAT_ID,
         `ℹ️ Нового користувача "${firstName} ${lastName} <${username}> (${chatId})" додано в базу даних`
       )
     }
+
+    return response.data
+  }
+
+  async function getRandomCompliment(status) {
+    let response = null
+
+    if (status) {
+      response = await axios.get(`${DB_BASE_URL}/compliments/${status}`)
+    } else {
+      response = await axios.get(`${DB_BASE_URL}/compliments`)
+    }
+    const randomIndex = Math.floor(Math.random() * response.data.length)
+
+    const chosenCompliment = response.data[randomIndex]
+    const { _id, sentTimes } = chosenCompliment
+
+    await axios.patch(`${DB_BASE_URL}/compliments/${_id}`, { sentTimes: sentTimes + 1 })
+
+    return chosenCompliment
   }
 
   function separateCommand(msg) {
