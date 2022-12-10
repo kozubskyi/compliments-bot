@@ -1,29 +1,32 @@
 //* npm - node-telegram-bot-api
 
-require("dotenv").config() // Без этого кода перед require("node-telegram-bot-api") и NTBA_FIX_319 = 1 в файле .env выдает ошибку:
+require('dotenv').config(); // Без этого кода перед require("node-telegram-bot-api") и NTBA_FIX_319 = 1 в файле .env выдает ошибку:
 // node-telegram-bot-api deprecated Automatic enabling of cancellation of promises is deprecated. In the future, you will have to enable it yourself. See https://github.com/yagop/node-telegram-bot-api/issues/319. at node:internal/modules/cjs/loader:1105:14
 // Решение: https://github.com/yagop/node-telegram-bot-api/issues/540
 
-const TelegramBot = require("node-telegram-bot-api")
-// const dotenv = require("dotenv")
-const axios = require("axios")
+const TelegramBot = require('node-telegram-bot-api');
+const axios = require('axios');
+const {
+  getStartCmdResponse,
+  getComplimentCmdResponse,
+  getElseResponse,
+  separateCommand,
+} = require('./helpers');
+const { BOT_TOKEN, KOZUBSKYI_CHAT_ID, LENA_RAK_CHAT_ID, DB_BASE_URL } = process.env;
 
-// dotenv.config()
-const { BOT_TOKEN, KOZUBSKYI_CHAT_ID, LENA_RAK_CHAT_ID, DB_BASE_URL } = process.env
-
-const bot = new TelegramBot(BOT_TOKEN, { polling: true })
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 
 function start() {
-  const SWEET_CHAT_ID = Number(LENA_RAK_CHAT_ID)
-  const CREATOR_CHAT_ID = Number(KOZUBSKYI_CHAT_ID)
+  const SWEET_CHAT_ID = Number(LENA_RAK_CHAT_ID);
+  const CREATOR_CHAT_ID = Number(KOZUBSKYI_CHAT_ID);
 
   bot.setMyCommands([
     // { command: "/start", description: "Почати" },
-    { command: "/compliment", description: "Отримати компліментик" },
-  ])
+    { command: '/compliment', description: 'Отримати компліментик' },
+  ]);
 
   // 👇 обработчик получения сообщения от пользователя
-  bot.on("message", async (msg) => {
+  bot.on('message', async msg => {
     // console.log({ msg })
 
     await makeResponse({
@@ -32,7 +35,7 @@ function start() {
       username: msg.from.username,
       chatId: msg.chat.id,
       command: msg.text,
-    })
+    });
 
     // msg = {
     //   message_id: 1,
@@ -55,7 +58,7 @@ function start() {
     //   text: "user typed message",
     //   entities: [[Object]],
     // }
-  })
+  });
 
   // 👇 Обработчик клика на кнопку (если она есть)
   // bot.on("callback_query", async (cb) => {
@@ -69,171 +72,137 @@ function start() {
   // })
 
   async function makeResponse({ firstName, lastName, username, chatId, command }) {
-    let response = null
-    let buttonOptions = {}
+    let response = null;
+    let buttonOptions = {};
 
     try {
-      const user = await handleUser({ firstName, lastName, username, chatId, command })
+      const user = await handleUser({ firstName, lastName, username, chatId, command });
 
-      if (chatId === SWEET_CHAT_ID) {
-        if (command === "/start") {
-          response =
-            "Лєнусік, привіт) 😘 Денис просив передати тобі багато компліментиків. Напиши або натисни /compliment і отримаєшь компліментик)"
-        } else if (command === "/compliment") {
-          const { text } = await getRandomCompliment("sweet")
+      // user.status = 'creator'; //* ⬅️ for testing (creator, sweet, family, friend, others)
 
-          response = text
-        } else {
-          response = "Я передам Денису те, що ти написала) 😘"
+      if (command === '/start') response = getStartCmdResponse(user.status);
+      else if (command === '/compliment') response = await getComplimentCmdResponse(user.status);
+      else response = getElseResponse(user.status);
+
+      if (user.status === 'creator') {
+        const [adminCommand, newData] = separateCommand(command);
+
+        if (adminCommand === '-add') {
+          await axios.post(`${DB_BASE_URL}/compliments`, { text: newData });
+
+          response = '✅ Компліментик додано в базу даних';
         }
-      } else if (chatId === CREATOR_CHAT_ID) {
-        const [adminCommand, newData] = separateCommand(command)
+        if (adminCommand === '-addall') {
+          await axios.post(`${DB_BASE_URL}/compliments/all`, JSON.parse(newData));
 
-        if (command === "/compliment") {
-          const { text } = await getRandomCompliment("creator")
+          response = '✅ Всі компліментики додано в базу даних';
+        }
+        if (adminCommand === '-del') {
+          await axios.delete(`${DB_BASE_URL}/compliments/${newData}`);
 
-          response = text
-        } else if (adminCommand === "-add") {
-          await axios.post(`${DB_BASE_URL}/compliments`, { text: newData })
+          response = '✅ Компліментик видалено з бази даних або такого і не було';
+        }
+        if (command === '-delall') {
+          await axios.delete(`${DB_BASE_URL}/compliments/`);
 
-          response = "✅ Компліментик додано в базу даних"
-        } else if (adminCommand === "-addall") {
-          await axios.post(`${DB_BASE_URL}/compliments/all`, JSON.parse(newData))
+          response = '✅ Всі компліментики видалено з бази даних';
+        }
+        if (adminCommand === '-mlr') {
+          await bot.sendMessage(SWEET_CHAT_ID, newData);
 
-          response = "✅ Всі компліментики додано в базу даних"
-        } else if (adminCommand === "-del") {
-          await axios.delete(`${DB_BASE_URL}/compliments/${newData}`)
+          response = '✅ Повідомлення Лєнусічке відправлено';
+        }
+        if (adminCommand === '-msg') {
+          const [receiverChatId, text] = separateCommand(newData);
 
-          response = "✅ Компліментик видалено з бази даних або такого і не було"
-        } else if (command === "/delall") {
-          await axios.delete(`${DB_BASE_URL}/compliments/`)
+          await bot.sendMessage(Number(receiverChatId), text);
+          response = '✅ Повідомлення користувачу відправлено';
+        }
+        if (command === '/all') {
+          const { data } = await axios.get(`${DB_BASE_URL}/compliments`);
 
-          response = "✅ Всі компліментики видалено з бази даних"
-        } else if (adminCommand === "-mlr") {
-          await bot.sendMessage(SWEET_CHAT_ID, newData)
+          response = JSON.stringify(
+            data.map(compliment => ({ text: compliment.text, for: compliment.for }))
+          );
+        }
+        if (command === '/allq') {
+          const { data } = await axios.get(`${DB_BASE_URL}/compliments`);
 
-          response = "✅ Повідомлення Лєнусічке відправлено"
-        } else if (adminCommand === "-msg") {
-          const [receiverChatId, text] = separateCommand(newData)
-
-          await bot.sendMessage(Number(receiverChatId), text)
-          response = "✅ Повідомлення користувачу відправлено"
-        } else if (command === "/all") {
-          const { data } = await axios.get(`${DB_BASE_URL}/compliments`)
-
-          response = JSON.stringify(data.map(({ text }) => ({ text })))
-        } else if (command === "/allq") {
-          const { data } = await axios.get(`${DB_BASE_URL}/compliments`)
-
-          response = data.length
-        } else if (command === "/help") {
+          response = data.length;
+        }
+        if (command === '/help') {
           response = `
         🗣️ Команди:
         "-add _" - додати у базу даних новий компліментик з текстом _;
         "-addall _" - додати в базу даних усі компліментики масиву _;
         "-del _" - видалити з бази даних компліментик з текстом _;
-        "/delall" - видалити всі компліментики з бази даних;
+        "-delall" - видалити всі компліментики з бази даних;
         "-mlr _" - відправити повідомлення Олені Рак з текстом _;
         "-msg _ __" - відправити повідомлення користувачу з chatId _ і текстом __;
         "/all" - отримати entries усіх компліментиков;
         "/allq" - отримати кількість усіх компліментиков у базі даних;
         "/help" - отримати список усіх можливих команд;
         "/test" - тестова команда.
-        `
-        } else if (command === "/test") {
-          response = "✅ Тестова команда завершилася успішно"
-        } else {
-          response = "⚠️ Некоректна команда"
+        `;
         }
-      } else {
-        if (command === "/start") {
-          response = "Привіт) я телеграм-бот iDen. Напиши або натисни /compliment і отримаєшь компліментик"
-        } else if (command === "/compliment") {
-          const { text } = await getRandomCompliment("others")
-
-          response = text
-        }
-        if (command === "/start" || command === "/compliment") {
-          response = "Нажаль Ви не Олена Рак, а компліментики я роблю лише їй 🤷‍♂️"
-          // buttonOptions = {
-          //   reply_markup: JSON.stringify({
-          //     inline_keyboard: [[{ text: "Получить комплиментик", callback_data: "/compliment" }]],
-          //   }),
-          // }
-        } else {
-          response = "Я передам Денису те, що Ви написали 😉"
+        if (command === '/test') {
+          response = '✅ Тестова команда завершилася успішно';
         }
       }
 
-      await bot.sendMessage(chatId, response, buttonOptions)
+      // buttonOptions = {
+      //   reply_markup: JSON.stringify({
+      //     inline_keyboard: [[{ text: "Получить комплиментик", callback_data: "/compliment" }]],
+      //   }),
+      // }
+
+      await bot.sendMessage(chatId, response, buttonOptions);
 
       if (chatId !== CREATOR_CHAT_ID) {
         await bot.sendMessage(
           CREATOR_CHAT_ID,
           `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і отримав(-ла) відповідь "${response}"`
-        )
+        );
       }
     } catch (err) {
       if (chatId !== CREATOR_CHAT_ID) {
-        await bot.sendMessage(chatId, "Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊")
+        await bot.sendMessage(chatId, 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊');
       }
 
       await bot.sendMessage(
         CREATOR_CHAT_ID,
         `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${err}"`
-      )
+      );
     }
   }
 
   async function handleUser({ firstName, lastName, username, chatId }) {
-    const getAndUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`
+    const getAndUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`;
 
-    const { data } = await axios.get(getAndUpdateUrl)
+    const { data } = await axios.get(getAndUpdateUrl);
 
-    let response = null
+    let response = null;
 
     if (data) {
-      response = await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 })
+      response = await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 });
     } else {
-      response = await axios.post(`${DB_BASE_URL}/users`, { firstName, lastName, username, chatId })
+      response = await axios.post(`${DB_BASE_URL}/users`, {
+        firstName,
+        lastName,
+        username,
+        chatId,
+      });
 
       await bot.sendMessage(
         CREATOR_CHAT_ID,
         `ℹ️ Нового користувача "${firstName} ${lastName} <${username}> (${chatId})" додано в базу даних`
-      )
+      );
     }
 
-    return response.data
-  }
-
-  async function getRandomCompliment(status) {
-    let response = null
-
-    if (status) {
-      response = await axios.get(`${DB_BASE_URL}/compliments/${status}`)
-    } else {
-      response = await axios.get(`${DB_BASE_URL}/compliments`)
-    }
-    const randomIndex = Math.floor(Math.random() * response.data.length)
-
-    const chosenCompliment = response.data[randomIndex]
-    const { _id, sentTimes } = chosenCompliment
-
-    await axios.patch(`${DB_BASE_URL}/compliments/${_id}`, { sentTimes: sentTimes + 1 })
-
-    return chosenCompliment
-  }
-
-  function separateCommand(msg) {
-    const msgArr = msg.split(" ")
-    const cmd = msgArr[0]
-    const text = msgArr.slice(1).join(" ")
-
-    return [cmd, text]
+    return response.data;
   }
 }
-
-start()
+start();
 
 /*
 
@@ -354,4 +323,3 @@ function separateCommand(msg) {
 }
 
 */
-

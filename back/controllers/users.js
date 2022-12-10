@@ -1,120 +1,122 @@
-const { Router } = require("express")
-const UserModel = require("../models/user")
-const HttpErrors = require("http-errors")
-const createDate = require("../helpers/create-date")
+const { Router } = require('express');
+const UserModel = require('../models/user');
+const HttpErrors = require('http-errors');
+const { createDate } = require('../helpers');
 
-const usersController = Router()
+const usersController = Router();
 
-usersController.get("/", async (req, res, next) => {
+usersController.get('/', async (req, res, next) => {
   try {
-    const users = await UserModel.find()
+    const users = await UserModel.find();
 
-    res.status(200).send(users)
+    res.status(200).send(users);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.get("/:id", async (req, res, next) => {
+usersController.get('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
-    const user = await UserModel.findById(id)
+    const user = await UserModel.findById(id);
 
-    if (!user) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`)
+    if (!user) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`);
 
-    res.status(200).send(user)
+    res.status(200).send(user);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.get("/chatId/:chatId", async (req, res, next) => {
+usersController.get('/chatId/:chatId', async (req, res, next) => {
   try {
-    const { chatId } = req.params
+    const { chatId } = req.params;
 
-    const user = await UserModel.findOne({ chatId })
+    const user = await UserModel.findOne({ chatId });
 
     // 👇 не потрібна ця строка
     // if (!user) throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`)
 
-    res.status(200).send(user)
+    res.status(200).send(user);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.post("/", async (req, res, next) => {
+usersController.post('/', async (req, res, next) => {
   try {
-    const { chatId } = req.body
+    const { chatId } = req.body;
 
-    const existingUser = await UserModel.findOne({ chatId })
+    const existingUser = await UserModel.findOne({ chatId });
 
-    if (existingUser) throw new HttpErrors.Conflict(`Користувач з chatId ${chatId} вже є у базі даних`)
+    if (existingUser)
+      throw new HttpErrors.Conflict(`Користувач з chatId ${chatId} вже є у базі даних`);
 
-    const newUser = await UserModel.create({ ...req.body, created: createDate() })
+    const newUser = await UserModel.create({ ...req.body, created: createDate() });
 
-    res.status(201).send(newUser)
+    res.status(201).send(newUser);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.patch("/:id", async (req, res, next) => {
+usersController.patch('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
-    const updatedUser = await UserModel.findByIdAndUpdate(id, req.body, { new: true })
+    const updatedUser = await UserModel.findByIdAndUpdate(id, req.body, { new: true });
 
-    if (!updatedUser) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`)
+    if (!updatedUser) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`);
 
-    res.status(200).send(updatedUser)
+    res.status(200).send(updatedUser);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.patch("/chatId/:chatId", async (req, res, next) => {
+usersController.patch('/chatId/:chatId', async (req, res, next) => {
   try {
-    const { chatId } = req.params
+    const { chatId } = req.params;
 
-    const updatedUser = await UserModel.findOneAndUpdate({ chatId }, req.body, { new: true })
+    const updatedUser = await UserModel.findOneAndUpdate({ chatId }, req.body, { new: true });
 
-    if (!updatedUser) throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`)
+    if (!updatedUser)
+      throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`);
 
-    res.status(200).send(updatedUser)
+    res.status(200).send(updatedUser);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.delete("/:id", async (req, res, next) => {
+usersController.delete('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
-    const deletedUser = await UserModel.findByIdAndDelete(id)
+    const deletedUser = await UserModel.findByIdAndDelete(id);
 
-    if (!deletedUser) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`)
+    if (!deletedUser) throw new HttpErrors.NotFound(`Користувача з id ${id} немає у базі даних`);
 
-    res.status(200).send(deletedUser)
+    res.status(200).send(deletedUser);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-usersController.delete("/chatId/:chatId", async (req, res, next) => {
+usersController.delete('/chatId/:chatId', async (req, res, next) => {
   try {
-    const { chatId } = req.params
+    const { chatId } = req.params;
 
-    const deletedUser = await UserModel.findOneAndDelete({ chatId })
+    const deletedUser = await UserModel.findOneAndDelete({ chatId });
 
-    if (!deletedUser) throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`)
+    if (!deletedUser)
+      throw new HttpErrors.NotFound(`Користувача з chatId ${chatId} немає у базі даних`);
 
-    res.status(200).send(deletedUser)
+    res.status(200).send(deletedUser);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-module.exports = usersController
-
+module.exports = usersController;
