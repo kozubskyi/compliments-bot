@@ -90,7 +90,7 @@ function start() {
         const [adminCommand, newData] = separateCommand(command)
 
         if (command === "/compliment") {
-          const { text } = await getRandomCompliment()
+          const { text } = await getRandomCompliment("creator")
 
           response = text
         } else if (adminCommand === "-add") {
