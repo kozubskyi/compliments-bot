@@ -5,17 +5,22 @@ const SWEET_CHAT_ID = Number(LENA_RAK_CHAT_ID)
 const CREATOR_CHAT_ID = Number(KOZUBSKYI_CHAT_ID)
 
 async function makeResponse(bot, { firstName, lastName, username, chatId, command }) {
-  let response = null
-  let buttonOptions = {}
+  let response = ''
+  let buttons = {}
 
   try {
     const user = await handleUser({ firstName, lastName, username, chatId, command })
 
-    // user.status = 'creator'; //* ⬅️ for testing (creator, sweet, family, friend, others)
+    // user.status = 'creator'; //* ⬅️ for testing (creator, sweet, others)
 
-    if (command === '/start') response = getStartCmdResponse(user.status)
-    else if (command === '/compliment') response = await getComplimentCmdResponse(user.status)
+    let cmdResp = {}
+
+    if (command === '/start') cmdResp = getStartCmdResponse(user.status)
+    else if (command === '/compliment') cmdResp = await getComplimentCmdResponse(user.status)
     else response = getElseResponse(user.status)
+
+    response = cmdResp.response
+    buttons = cmdResp.buttons ?? {}
 
     if (user.status === 'creator') {
       const [adminCommand, data] = separateCommand(command)
@@ -98,13 +103,23 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
       }
     }
 
-    // buttonOptions = {
+    // buttons = {
     //   reply_markup: JSON.stringify({
-    //     inline_keyboard: [[{ text: "Получить комплиментик", callback_data: "/compliment" }]],
+    //     inline_keyboard: [
+    //       [
+    //         { text: 'Комплімент', callback_data: '/compliment' },
+    //         { text: 'Побажання', callback_data: '/wish' },
+    //       ],
+    //       [
+    //         { text: '1', callback_data: '1' },
+    //         { text: '2', callback_data: '2' },
+    //         { text: '3', callback_data: '3' },
+    //       ],
+    //     ],
     //   }),
     // }
 
-    await bot.sendMessage(chatId, response, buttonOptions)
+    await bot.sendMessage(chatId, response, buttons)
 
     if (chatId !== CREATOR_CHAT_ID) {
       await bot.sendMessage(

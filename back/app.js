@@ -24,8 +24,9 @@ mongoose
 app.use(cors())
 app.use(express.json())
 
-app.use('/api/compliments', controllers.compliments)
 app.use('/api/users', controllers.users)
+app.use('/api/compliments', controllers.compliments)
+app.use('/api/wishes', controllers.wishes)
 app.use('*', (req, res) => {
   res.status(400).send({ message: "This endpoint isn't correct" })
 })

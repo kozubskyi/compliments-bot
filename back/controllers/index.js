@@ -1,5 +1,4 @@
 module.exports = {
-  users: require("./users"),
-  compliments: require("./compliments"),
+  users: require('./users'),
+  messages: require('./messages'),
 }
-

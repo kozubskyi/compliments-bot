@@ -5,15 +5,15 @@ require('dotenv').config() // Без этого кода перед require("nod
 // Решение: https://github.com/yagop/node-telegram-bot-api/issues/540
 
 const TelegramBot = require('node-telegram-bot-api')
-const { BOT_TOKEN } = process.env
 const makeResponse = require('./make-response')
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: true })
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
 
 function start() {
   bot.setMyCommands([
     // { command: "/start", description: "Почати" },
     { command: '/compliment', description: 'Отримати комплімент' },
+    { command: '/wish', description: 'Отримати побажання' },
   ])
 
   bot.on('message', async (msg) => {
@@ -48,15 +48,23 @@ function start() {
     // }
   })
 
-  // 👇 Обработчик клика на кнопку (если она есть)
-  // bot.on("callback_query", async (cb) => {
+  // Обробник кліка на кнопку (якщо вона є)
+  // bot.on("callback_query", async (cbq) => {
   //   await makeResponse(bot, {
-  //     firstName: cb.from.first_name,
-  //     lastName: cb.from.last_name,
-  //     username: cb.from.username,
-  //     chatId: cb.message.chat.id,
-  //     command: cb.data,
+  //     firstName: cbq.from.first_name,
+  //     lastName: cbq.from.last_name,
+  //     username: cbq.from.username,
+  //     chatId: cbq.message.chat.id,
+  //     command: cbq.data,
   //   })
+  // })
+
+  // Обробник отриманого повідомлення, яке починається з "/creatortest"
+  // bot.onText(/\/creatortest/, (msg, match) => {
+  //   console.log({ msg, match })
+  //   console.log('msg.entities', msg.entities)
+
+  //   bot.sendMessage(msg.chat.id, 'робе')
   // })
 }
 start()
