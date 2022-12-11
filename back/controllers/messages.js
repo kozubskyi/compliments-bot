@@ -25,11 +25,9 @@ messagesController.get('/:type', async (req, res, next) => {
   }
 })
 
-messagesController.get('/:type/:status', async (req, res, next) => {
-  const { type, status } = req.params
-
+messagesController.get('/:type/:for', async (req, res, next) => {
   try {
-    const messages = await MessageModel.find({ type, for: /* содержит в массиве status */})
+    const messages = await MessageModel.find({ type: req.params.type, for: {} /* содержит в массиве for */ })
 
     res.status(200).send(messages)
   } catch (err) {
@@ -39,13 +37,9 @@ messagesController.get('/:type/:status', async (req, res, next) => {
 
 messagesController.get('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params
+    const message = await MessageModel.findById(req.params.id)
 
-    const compliment = await MessageModel.findById(id)
-
-    if (!compliment) throw new HttpErrors.NotFound(`Компліментика з id ${id} немає у базі даних`)
-
-    res.status(200).send(compliment)
+    res.status(200).send(message)
   } catch (err) {
     next(err)
   }
@@ -53,21 +47,19 @@ messagesController.get('/:id', async (req, res, next) => {
 
 messagesController.post('/', async (req, res, next) => {
   try {
-    const { text } = req.body
-
-    const existing = await MessageModel.findOne({ text, for: req.body.for })
+    const existing = await MessageModel.findOne(req.body)
 
     if (existing) {
-      const message = `Компліментик формату { text: '${text}', for: '${req.body.for}' } вже є у базі даних`
+      const message = `Повідомлення формату ${req.body} вже є у базі даних`
 
       throw new HttpErrors.Conflict(message)
       // 👇 Нижній варіант ідентичний верхньому
       // res.status(409).send({ message })
     }
 
-    const newCompliment = await MessageModel.create({ ...req.body, created: createDate() })
+    const newMessage = await MessageModel.create({ ...req.body, created: createDate() })
 
-    res.status(201).send(newCompliment)
+    res.status(201).send(newMessage)
   } catch (err) {
     next(err)
   }
@@ -75,11 +67,11 @@ messagesController.post('/', async (req, res, next) => {
 
 messagesController.post('/all', async (req, res, next) => {
   try {
-    const newCompliments = await MessageModel.create(
+    const newMessages = await MessageModel.create(
       req.body.map((compliment) => ({ ...compliment, created: createDate() }))
     )
 
-    res.status(201).send(newCompliments)
+    res.status(201).send(newMessages)
   } catch (err) {
     next(err)
   }
@@ -87,19 +79,19 @@ messagesController.post('/all', async (req, res, next) => {
 
 messagesController.patch('/:id', async (req, res, next) => {
   try {
-    const updatedCompliment = await MessageModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    const updatedMessage = await MessageModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
 
-    res.status(200).send(updatedCompliment)
+    res.status(200).send(updatedMessage)
   } catch (err) {
     next(err)
   }
 })
 
-messagesController.delete('/id/:id', async (req, res, next) => {
+messagesController.delete('/:id', async (req, res, next) => {
   try {
-    const deletedCompliment = await MessageModel.findByIdAndDelete(req.params.id)
+    const deletedMessages = await MessageModel.findByIdAndDelete(req.params.id)
 
-    res.status(200).send(deletedCompliment)
+    res.status(200).send(deletedMessages)
   } catch (err) {
     next(err)
   }
@@ -107,9 +99,19 @@ messagesController.delete('/id/:id', async (req, res, next) => {
 
 messagesController.delete('/text/:text', async (req, res, next) => {
   try {
-    const deletedCompliment = await MessageModel.findOneAndDelete({ text: req.params.text })
+    const deletedMessages = await MessageModel.findOneAndDelete({ text: req.params.text })
 
-    res.status(200).send(deletedCompliment)
+    res.status(200).send(deletedMessages)
+  } catch (err) {
+    next(err)
+  }
+})
+
+messagesController.delete('/type/:type', async (req, res, next) => {
+  try {
+    const deletedCompliments = await MessageModel.deleteMany({ type: req.params.type })
+
+    res.status(200).send(deletedCompliments)
   } catch (err) {
     next(err)
   }
