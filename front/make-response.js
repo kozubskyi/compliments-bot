@@ -1,189 +1,142 @@
-const axios = require('axios');
+const axios = require('axios')
 const {
   getStartCmdResponse,
   getMessageResponse,
+  getHelpCmdResponse,
   getElseResponse,
-  separateCommand,
-} = require('./helpers');
-const { KOZUBSKYI_CHAT_ID, LENA_RAK_CHAT_ID, DB_BASE_URL } = process.env;
-const SWEET_CHAT_ID = Number(LENA_RAK_CHAT_ID);
-const CREATOR_CHAT_ID = Number(KOZUBSKYI_CHAT_ID);
+  separateFirstWord,
+} = require('./helpers')
+const { KOZUBSKYI_CHAT_ID, LENA_RAK_CHAT_ID, DB_BASE_URL } = process.env
+const SWEET_CHAT_ID = Number(LENA_RAK_CHAT_ID)
+const CREATOR_CHAT_ID = Number(KOZUBSKYI_CHAT_ID)
 
 async function makeResponse(bot, { firstName, lastName, username, chatId, command }) {
-  let response = '';
-  let buttons = {};
+  let response = ''
+  let buttons = {}
 
   try {
-    const user = await handleUser({ firstName, lastName, username, chatId, command });
+    const user = await handleUser({ firstName, lastName, username, chatId, command })
 
-    // user.status = 'sweet'; //* ⬅️ for testing (creator, sweet, others)
+    // user.status = 'others' //* ⬅️ for testing (creator, sweet, others)
 
-    let cmdResp = {};
+    let cmdResp = {}
 
-    if (command === '/start') {
-      cmdResp = getStartCmdResponse(user.status);
-    } else if (command === '/compliment' || command === '/wish') {
-      cmdResp = await getMessageResponse(user.status, command.slice(1));
-    } else {
-      response = getElseResponse(user.status);
-    }
+    if (command === '/start') cmdResp = getStartCmdResponse(user)
+    else if (command === '/compliment' || command === '/wish')
+      cmdResp = await getMessageResponse(user.status, command.slice(1))
+    else if (command === '/help') cmdResp = await getHelpCmdResponse(user.status)
+    else cmdResp = getElseResponse(user.status)
 
-    response = cmdResp.response;
-    buttons = cmdResp.buttons ?? {};
+    response = cmdResp.response
+    buttons = cmdResp.buttons ?? {}
 
     if (user.status === 'creator') {
-      const [adminCommand, data] = separateCommand(command);
+      const [adminCommand, data] = separateFirstWord(command)
 
       if (adminCommand === 'add') {
-        //* done
-        const [type, statusAndText] = separateCommand(data);
-        const [status, text] = separateCommand(statusAndText);
-        const resp = await axios.post(`${DB_BASE_URL}/messages`, { type, for: [status], text });
+        const [type, statusAndText] = separateFirstWord(data)
+        const [status, text] = separateFirstWord(statusAndText)
+        let forStatus
+        status === 'all' ? (forStatus = ['sweet', 'creator', 'others']) : (forStatus = [status])
 
-        response = `✅ Компліментик додано в базу даних: ${JSON.stringify(resp.data)}`;
+        const resp = await axios.post(`${DB_BASE_URL}/messages`, { type, for: forStatus, text })
+
+        response = `✅ Компліментик додано в базу даних: ${JSON.stringify(resp.data)}`
       }
       if (adminCommand === 'addmessages') {
-        //* done
-        await axios.post(`${DB_BASE_URL}/messages/all`, JSON.parse(data));
+        await axios.post(`${DB_BASE_URL}/messages/all`, JSON.parse(data))
 
-        response = '✅ Всі компліментики додано в базу даних';
+        response = '✅ Всі компліментики додано в базу даних'
       }
       if (adminCommand === 'del') {
-        //* done
-        const resp = await axios.delete(`${DB_BASE_URL}/messages/text/${data}`);
+        const resp = await axios.delete(`${DB_BASE_URL}/messages/text/${data}`)
         // Цікаве: при методі DELETE не передається body, інфу можна передавати лише черер params
 
         if (resp.data) {
-          response = `✅ Компліментик видалено з бази даних: ${JSON.stringify(resp.data)}`;
+          response = `✅ Компліментик видалено з бази даних: ${JSON.stringify(resp.data)}`
         } else {
-          response = 'ℹ️ Такого компліментика і не було в базі даних';
+          response = 'ℹ️ Такого компліментика і не було в базі даних'
         }
       }
       if (command === 'delallmessages') {
-        //* done
-        await axios.delete(`${DB_BASE_URL}/messages`);
+        await axios.delete(`${DB_BASE_URL}/messages`)
 
-        response = '✅ Всі компліментики видалено з бази даних';
+        response = '✅ Всі компліментики видалено з бази даних'
       }
       if (adminCommand === 'mlr') {
-        //* done
-        await bot.sendMessage(SWEET_CHAT_ID, data);
-        response = '✅ Повідомлення відправлено';
+        await bot.sendMessage(SWEET_CHAT_ID, data)
+        response = '✅ Повідомлення відправлено'
       }
       if (adminCommand === 'msg') {
-        //* done
-        const [receiverChatId, text] = separateCommand(data);
+        const [receiverChatId, text] = separateFirstWord(data)
 
-        await bot.sendMessage(Number(receiverChatId), text);
-        response = '✅ Повідомлення відправлено';
+        await bot.sendMessage(Number(receiverChatId), text)
+        response = '✅ Повідомлення відправлено'
       }
       if (command === '/users') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/users`);
+        const resp = await axios.get(`${DB_BASE_URL}/users`)
 
-        response = JSON.stringify(resp.data);
-      }
-      if (command === '/usersq') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/users`);
-
-        response = resp.data.length;
+        response = JSON.stringify(resp.data)
       }
       if (command === '/messages') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/messages`);
+        const resp = await axios.get(`${DB_BASE_URL}/messages`)
 
         response = JSON.stringify(
-          resp.data.map(message => ({ type: message.type, text: message.text, for: message.for }))
-        );
+          resp.data.map((message) => ({ type: message.type, text: message.text, for: message.for }))
+        )
       }
       if (command === '/compliments') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`);
+        const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`)
 
         response = JSON.stringify(
-          resp.data.map(compliment => ({
+          resp.data.map((compliment) => ({
             type: compliment.type,
             text: compliment.text,
             for: compliment.for,
           }))
-        );
+        )
       }
       if (command === '/wishes') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/messages/wish`);
+        const resp = await axios.get(`${DB_BASE_URL}/messages/wish`)
 
-        response = JSON.stringify(
-          resp.data.map(wish => ({ type: wish.type, text: wish.text, for: wish.for }))
-        );
+        response = JSON.stringify(resp.data.map((wish) => ({ type: wish.type, text: wish.text, for: wish.for })))
+      }
+      if (command === '/usersq') {
+        const resp = await axios.get(`${DB_BASE_URL}/users`)
+
+        response = resp.data.length
       }
       if (command === '/messagesq') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/messages`);
+        const resp = await axios.get(`${DB_BASE_URL}/messages`)
 
-        response = resp.data.length;
+        response = resp.data.length
       }
       if (command === '/complimentsq') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`);
+        const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`)
 
-        response = resp.data.length;
+        response = resp.data.length
       }
       if (command === '/wishesq') {
-        //* done
-        const resp = await axios.get(`${DB_BASE_URL}/messages/wish`);
+        const resp = await axios.get(`${DB_BASE_URL}/messages/wish`)
 
-        response = resp.data.length;
+        response = resp.data.length
       }
       if (command === '/test') {
-        response = '✅';
-      }
-      if (command === '/help') {
-        response = `
-        🗣️ Команди:
-        "add _ __" - додати у базу даних новий компліментик для статусу _ з текстом __;
-        "addcompliments _" - додати в базу даних усі компліментики масиву _;
-        "del _" - видалити з бази даних компліментик з текстом _;
-        "delcompliments" - видалити всі компліментики з бази даних;
-        "mlr _" - відправити повідомлення Олені Рак з текстом _;
-        "msg _ __" - відправити повідомлення користувачу з chatId _ і текстом __;
-        "/compliments" - отримати масив тільки з полями text та for усіх компліментиків;
-        "/complimentsq" - отримати кількість усіх компліментиков у базі даних;
-        "/users" - отримати масив з повною інформацією всіх користувачів;
-        "/usersq" - отримати кількість усіх користувачів у базі даних;
-        "/test" - тестова команда;
-        "/help" - отримати список усіх можливих команд.
-        `;
+        response = '✅'
       }
     }
 
-    // buttons = {
-    //   reply_markup: JSON.stringify({
-    //     inline_keyboard: [
-    //       [
-    //         { text: 'Комплімент', callback_data: '/compliment' },
-    //         { text: 'Побажання', callback_data: '/wish' },
-    //       ],
-    //       [
-    //         { text: '1', callback_data: '1' },
-    //         { text: '2', callback_data: '2' },
-    //         { text: '3', callback_data: '3' },
-    //       ],
-    //     ],
-    //   }),
-    // }
-
-    await bot.sendMessage(chatId, response, buttons);
+    await bot.sendMessage(chatId, response, buttons)
 
     if (chatId !== CREATOR_CHAT_ID) {
       await bot.sendMessage(
         CREATOR_CHAT_ID,
         `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і отримав(-ла) відповідь "${response}"`
-      );
+      )
     }
   } catch (err) {
     if (chatId !== CREATOR_CHAT_ID) {
-      await bot.sendMessage(chatId, 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊');
+      await bot.sendMessage(chatId, 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊')
     }
 
     await bot.sendMessage(
@@ -191,34 +144,34 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
       `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${
         err?.response?.data?.message ?? err
       }"`
-    );
+    )
   }
 }
 
 async function handleUser({ firstName, lastName, username, chatId }) {
-  const getAndUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`;
+  const getAndUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`
 
-  const { data } = await axios.get(getAndUpdateUrl);
+  const { data } = await axios.get(getAndUpdateUrl)
 
-  let response = null;
+  let response = null
 
   if (data) {
-    response = await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 });
+    response = await axios.patch(getAndUpdateUrl, { messages: data.messages + 1 })
   } else {
     response = await axios.post(`${DB_BASE_URL}/users`, {
       firstName,
       lastName,
       username,
       chatId,
-    });
+    })
 
     await bot.sendMessage(
       CREATOR_CHAT_ID,
       `ℹ️ Нового користувача "${firstName} ${lastName} <${username}> (${chatId})" додано в базу даних`
-    );
+    )
   }
 
-  return response.data;
+  return response.data
 }
 
-module.exports = makeResponse;
+module.exports = makeResponse
