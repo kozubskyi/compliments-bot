@@ -1,20 +1,14 @@
-const { Schema, model } = require("mongoose")
+const { Schema, model } = require('mongoose')
 
 const schema = new Schema(
   {
     text: { type: String, required: true },
-    sentTimes: { type: Number, default: 0 },
+    sendings: { type: Number, default: 0 },
+    for: { type: String, enum: ['creator', 'sweet', 'others'], default: 'sweet' },
     created: String,
     // created: { type: Date, default: Date.now },
-    for: {
-      type: String,
-      enum: ["creator", "sweet", "family", "friend", "others"],
-      default: "sweet",
-    },
   },
   { versionKey: false }
 )
 
-module.exports = model("Compliment", schema)
-
-
+module.exports = model('Compliment', schema)
