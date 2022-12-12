@@ -1,8 +1,8 @@
-const axios = require('axios')
-const { DB_BASE_URL } = process.env
+const axios = require('axios');
+const { DB_BASE_URL } = process.env;
 
-function getStartCmdResponse({ firstName, status }) {
-  let response = ''
+function handleStartCommand({ firstName, status }) {
+  let response = '';
   const buttons = {
     reply_markup: JSON.stringify({
       inline_keyboard: [
@@ -14,58 +14,49 @@ function getStartCmdResponse({ firstName, status }) {
         ],
       ],
     }),
-  }
+  };
 
   if (status === 'sweet') {
     response =
-      'Лєнусік, привіт) 😊 Денис просив передати тобі багато компліментиків та побажаннячок) ☺️ Натисни на потрібну кнопку, або напиши /compliment чи /wish 😘'
+      'Лєнусік, привіт) 😊 Денис просив передати тобі багато компліментиків та побажаннячок) ☺️ Натисни на потрібну кнопку, або напиши /compliment чи /wish 😘';
   } else if (status === 'creator') {
-    response = 'Привіт, творець) працюю коректно 😊'
+    response = 'Привіт, творець) працюю коректно 😊';
   } else {
-    response = `Привіт, ${firstName} 👋 для отримання побажання натисни на кнопку або відправ повідомлення з текстом /wish 😊`
+    response = `Привіт, ${firstName} 👋 для отримання побажання натисни на кнопку або відправ повідомлення з текстом /wish 😊`;
   }
 
-  return { response, buttons }
+  return { response, buttons };
 }
 
 async function getRandomMessage(type, status) {
-  const { data } = await axios.get(`${DB_BASE_URL}/messages/${type}/${status}`)
+  const { data } = await axios.get(`${DB_BASE_URL}/messages/${type}/${status}`);
 
-  const randomIndex = Math.floor(Math.random() * data.length)
+  const randomIndex = Math.floor(Math.random() * data.length);
 
-  const chosenMessage = data[randomIndex]
-  const { _id, sendings } = chosenMessage
+  const chosenMessage = data[randomIndex];
+  const { _id, sendings } = chosenMessage;
 
-  await axios.patch(`${DB_BASE_URL}/messages/${_id}`, { sendings: sendings + 1 })
+  await axios.patch(`${DB_BASE_URL}/messages/${_id}`, { sendings: sendings + 1 });
 
-  return chosenMessage
+  return chosenMessage;
 }
 
-async function getMessageResponse(status, type) {
-  let response = ''
-  const buttons = {
-    reply_markup: JSON.stringify({
-      inline_keyboard: [
-        [
-          { text: '💝 Компліментик', callback_data: '/compliment' },
-          { text: '✨ Побажаннячко', callback_data: '/wish' },
-        ],
-      ],
-    }),
-  }
+async function handleComplimentOrWishCommand(status, type) {
+  let response = '';
 
   if (status !== 'sweet' && type === 'compliment') {
-    response = 'Вибач, але компліментики я роблю лише Олені Рак. Для усіх інших я відправляю побажання.'
+    response =
+      'Вибач, але компліментики я роблю лише Олені Рак. Для усіх інших я відправляю побажання.';
   } else {
-    const chosenMessage = await getRandomMessage(type, status)
-    response = chosenMessage.text
+    const chosenMessage = await getRandomMessage(type, status);
+    response = chosenMessage.text;
   }
 
-  return { response, buttons }
+  return { response };
 }
 
-function getHelpCmdResponse(status) {
-  let response = ''
+function handleHelpCommand(status) {
+  let response = '';
   const buttons = {
     reply_markup: JSON.stringify({
       inline_keyboard: [
@@ -77,7 +68,7 @@ function getHelpCmdResponse(status) {
         ],
       ],
     }),
-  }
+  };
 
   if (status === 'creator') {
     response = `🗣️ Команди
@@ -103,7 +94,8 @@ msg <chatId> <text> - відправити повідомлення корист
 /messagesq - отримати кількість усіх повідомлень у базі даних;
 /complimentsq - отримати кількість усіх компліментів у базі даних;
 /wishesq - отримати кількість усіх побажань у базі даних;
-/test - тестова команда.`
+/resetsendings - скинути поле sendings усіх повідомлень до 0;
+/test - тестова команда.`;
   } else {
     response = `🗣️ Команди
 
@@ -111,34 +103,120 @@ msg <chatId> <text> - відправити повідомлення корист
 /compliment - отримати комплімент від бота
 /wish - отримати побажання від бота
 /help - отримати список усіх можливих команд
-Також можеш просто написати повідомлення, а я передам його Денису`
+Також можеш просто написати повідомлення, а я передам його Денису`;
   }
 
-  return { response, buttons }
+  return { response, buttons };
 }
 
-function getElseResponse(status) {
-  let response = ''
+async function handleElseCommands(status, command) {
+  let response = '';
 
-  if (status === 'sweet') response = 'Я передам Денису те, що ти написала) 😘'
-  else if (status === 'creator') response = '⚠️ Некоректна команда'
-  else response = 'Я передам Денису це повідомлення 😉'
+  if (status === 'sweet') {
+    response = 'Я передам Денису те, що ти написала) 😘';
+  } else if (status === 'creator') {
+    const [adminCommand, rest] = separateFirstWord(command);
 
-  return { response }
+    if (adminCommand === 'add') {
+      const [type, statusAndText] = separateFirstWord(rest);
+      const [status, text] = separateFirstWord(statusAndText);
+      let forStatus;
+      status === 'all' ? (forStatus = ['sweet', 'creator', 'others']) : (forStatus = [status]);
+
+      const resp = await axios.post(`${DB_BASE_URL}/messages`, { type, for: forStatus, text });
+
+      response = `✅ Компліментик додано в базу даних: ${JSON.stringify(resp.data)}`;
+    } else if (adminCommand === 'addmessages') {
+      await axios.post(`${DB_BASE_URL}/messages/all`, JSON.parse(rest));
+
+      response = '✅ Всі компліментики додано в базу даних';
+    } else if (adminCommand === 'del') {
+      const resp = await axios.delete(`${DB_BASE_URL}/messages/text/${rest}`);
+      // Цікаве: при методі DELETE не передається body, інфу можна передавати лише черер params
+
+      if (resp.data) {
+        response = `✅ Компліментик видалено з бази даних: ${JSON.stringify(resp.data)}`;
+      } else {
+        response = 'ℹ️ Такого компліментика і не було в базі даних';
+      }
+    } else if (command === 'delallmessages') {
+      await axios.delete(`${DB_BASE_URL}/messages`);
+
+      response = '✅ Всі компліментики видалено з бази даних';
+    } else if (adminCommand === 'mlr') {
+      await bot.sendMessage(SWEET_CHAT_ID, rest);
+      response = '✅ Повідомлення відправлено';
+    } else if (adminCommand === 'msg') {
+      const [receiverChatId, text] = separateFirstWord(rest);
+
+      await bot.sendMessage(Number(receiverChatId), text);
+      response = '✅ Повідомлення відправлено';
+    } else if (command === '/users') {
+      const resp = await axios.get(`${DB_BASE_URL}/users`);
+
+      response = JSON.stringify(resp.data);
+    } else if (command === '/messages') {
+      const resp = await axios.get(`${DB_BASE_URL}/messages`);
+
+      response = JSON.stringify(
+        resp.data.map(message => ({ type: message.type, text: message.text, for: message.for }))
+      );
+    } else if (command === '/compliments') {
+      const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`);
+
+      response = JSON.stringify(
+        resp.data.map(compliment => ({
+          type: compliment.type,
+          text: compliment.text,
+          for: compliment.for,
+        }))
+      );
+    } else if (command === '/wishes') {
+      const resp = await axios.get(`${DB_BASE_URL}/messages/wish`);
+
+      response = JSON.stringify(
+        resp.data.map(wish => ({ type: wish.type, text: wish.text, for: wish.for }))
+      );
+    } else if (command === '/usersq') {
+      const resp = await axios.get(`${DB_BASE_URL}/users`);
+
+      response = resp.data.length;
+    } else if (command === '/messagesq') {
+      const resp = await axios.get(`${DB_BASE_URL}/messages`);
+
+      response = resp.data.length;
+    } else if (command === '/complimentsq') {
+      const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`);
+
+      response = resp.data.length;
+    } else if (command === '/wishesq') {
+    } else if (command === '/resetsendings') {
+      const resp = await axios.patch(`${DB_BASE_URL}/messages/reset/sendings`);
+
+      response = '✅ Поле sendings усіх повідомлень успішно скинуто до 0';
+    } else if (command === '/test') {
+      response = '✅';
+    } else {
+      response = '⚠️ Некоректна команда';
+    }
+  } else {
+    response = 'Я передам Денису це повідомлення 😉';
+  }
+
+  return { response };
 }
 
 function separateFirstWord(msg) {
-  const msgArr = msg.split(' ')
-  const cmd = msgArr[0]
-  const text = msgArr.slice(1).join(' ')
+  const msgArr = msg.split(' ');
+  const cmd = msgArr[0];
+  const text = msgArr.slice(1).join(' ');
 
-  return [cmd, text]
+  return [cmd, text];
 }
 
 module.exports = {
-  getStartCmdResponse,
-  getMessageResponse,
-  getHelpCmdResponse,
-  getElseResponse,
-  separateFirstWord,
-}
+  handleStartCommand,
+  handleComplimentOrWishCommand,
+  handleHelpCommand,
+  handleElseCommands,
+};
