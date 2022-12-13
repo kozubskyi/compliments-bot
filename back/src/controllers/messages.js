@@ -1,6 +1,6 @@
 const { Router } = require('express');
-const MessageModel = require('../models/message');
 const HttpErrors = require('http-errors');
+const MessageModel = require('../models/message');
 const { createDate } = require('../helpers');
 
 const messagesController = Router();
@@ -27,13 +27,13 @@ messagesController.get('/type/:type', async (req, res, next) => {
 
 messagesController.get('/for/:for', async (req, res, next) => {
   try {
-    const messages = await MessageModel.find({ for: req.params.for })
+    const messages = await MessageModel.find({ for: req.params.for });
 
-    res.status(200).send(messages)
+    res.status(200).send(messages);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 messagesController.get('/:type/:for', async (req, res, next) => {
   try {

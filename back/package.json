@@ -2,11 +2,15 @@
   "name": "telegram-bot-back",
   "version": "2.2.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "build": "node app.js"
+    "start": "SET NODE_ENV=development ./node_modules/.bin/netlify-lambda serve src",
+    "build": "SET NODE_ENV=production ./node_modules/.bin/netlify-lambda build src",
+    "dev": "nodemon functions/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kozubskyi/telegram-bot.git"
   },
   "keywords": [],
   "author": "Denys Kozubskyi <denys.kozubskyi@gmail.com>",
@@ -16,7 +20,9 @@
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "http-errors": "^2.0.0",
-    "mongoose": "^6.4.4"
+    "mongoose": "^6.4.4",
+    "netlify-lambda": "^2.0.15",
+    "serverless-http": "^3.1.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.19"

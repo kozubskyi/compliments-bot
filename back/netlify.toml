@@ -1,0 +1,12 @@
+[build]
+  base="./"
+  functions="functions"
+  publish="build"
+
+[dev]
+  publish="dist"
+
+# [[redirects]]
+#   from ="/*"
+#   to = "/api/:splat"
+#   status = 200
