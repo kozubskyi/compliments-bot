@@ -48,4 +48,4 @@ function start() {
 
 start()
 
-module.exports = bot
+console.log('✅ The bot is configured and working correctly')
