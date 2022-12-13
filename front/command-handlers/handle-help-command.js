@@ -1,6 +1,6 @@
 module.exports = function handleHelpCommand(status) {
   let response = ''
-  const buttons = {}
+  let buttons = {}
 
   if (status === 'creator') {
     response = `🗣️ Команди
@@ -44,17 +44,32 @@ module.exports = function handleHelpCommand(status) {
 
 Також можна просто написати повідомлення, а я передам його Денису`
 
-    buttons = {
-      reply_markup: JSON.stringify({
-        inline_keyboard: [
-          [{ text: '💝 Компліментик', callback_data: '/compliment' }],
-          [{ text: '✨ Побажаннячко', callback_data: '/wish' }],
-          [
-            { text: '👋 Привітання', callback_data: '/start' },
-            { text: '❔ Допомога', callback_data: '/help' },
+    if (status === 'sweet') {
+      buttons = {
+        reply_markup: JSON.stringify({
+          inline_keyboard: [
+            [{ text: '💝 Компліментик', callback_data: '/compliment' }],
+            [{ text: '✨ Побажаннячко', callback_data: '/wish' }],
+            [
+              { text: '👋 Привітання', callback_data: '/start' },
+              { text: '❔ Допомога', callback_data: '/help' },
+            ],
           ],
-        ],
-      }),
+        }),
+      }
+    } else {
+      buttons = {
+        reply_markup: JSON.stringify({
+          inline_keyboard: [
+            [{ text: '💝 Комплімент', callback_data: '/compliment' }],
+            [{ text: '✨ Побажання', callback_data: '/wish' }],
+            [
+              { text: '👋 Привітання', callback_data: '/start' },
+              { text: '❔ Допомога', callback_data: '/help' },
+            ],
+          ],
+        }),
+      }
     }
   }
 
