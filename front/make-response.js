@@ -9,7 +9,7 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
 
     const user = await handleUser({ firstName, lastName, username, chatId, command })
 
-    user.status = 'others' //* ⬅️ for testing (creator, sweet, others)
+    // user.status = 'sweet' //* ⬅️ for testing (creator, sweet, others)
 
     let cmdResp = {}
 
