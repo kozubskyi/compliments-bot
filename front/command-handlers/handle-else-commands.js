@@ -32,10 +32,18 @@ async function handleCreatorCommands(bot, command) {
     const resp = await axios.post(`${DB_BASE_URL}/messages`, { type, for: statuses[status], text })
 
     response = `✅ Повідомлення додано в базу даних: ${JSON.stringify(resp.data)}`
-  } else if (adminCommand === 'addmessages') {
-    await axios.post(`${DB_BASE_URL}/messages/all`, JSON.parse(rest))
+  }
+  // else if (adminCommand === 'addmessages') {
+  //   await axios.post(`${DB_BASE_URL}/messages/all`, JSON.parse(rest))
 
-    response = '✅ Всі компліментики додано в базу даних'
+  //   response = '✅ Всі компліментики додано в базу даних'
+  // }
+  else if (adminCommand === 'show') {
+    const [collection, id] = separateFirstWord(rest)
+
+    const resp = await axios.get(`${DB_BASE_URL}/${collection}s/${id}`)
+
+    response = JSON.stringify(resp.data)
   } else if (adminCommand === 'del') {
     const [key, idOrText] = separateFirstWord(rest)
 
@@ -47,10 +55,6 @@ async function handleCreatorCommands(bot, command) {
     } else {
       response = 'ℹ️ Такого повідомлення і не було в базі даних'
     }
-  } else if (command === 'delallmessages') {
-    await axios.delete(`${DB_BASE_URL}/messages`)
-
-    response = '✅ Всі компліментики видалено з бази даних'
   } else if (adminCommand === 'upd') {
     const [id, fieldAndNewValue] = separateFirstWord(rest)
     const [field, newValue] = separateFirstWord(fieldAndNewValue)
@@ -78,67 +82,39 @@ async function handleCreatorCommands(bot, command) {
     } else {
       response = '⚠️ Такого користувача немає у базі даних'
     }
+  } else if (command === 'delallmessages') {
+    await axios.delete(`${DB_BASE_URL}/messages`)
+
+    response = '✅ Всі компліментики видалено з бази даних'
   } else if (command === '/users') {
     const resp = await axios.get(`${DB_BASE_URL}/users`)
 
-    response = JSON.stringify(
-      resp.data.map(({ firstName, lastName, username, chatId, messages }) => ({
-        firstName,
-        lastName,
-        username,
-        chatId,
-        messages,
-      }))
-    )
+    response = JSON.stringify(resp.data.map(({ _id, firstName, lastName }) => `${_id} - ${firstName} ${lastName}`))
   } else if (command === '/messages') {
     const resp = await axios.get(`${DB_BASE_URL}/messages`)
 
-    response = JSON.stringify(
-      resp.data.map((message) => ({ type: message.type, text: message.text, for: message.for }))
-    )
+    response = JSON.stringify(resp.data.map(({ _id, text }) => `${_id} ${text}`))
   } else if (command === '/compliments') {
-    const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`)
+    const resp = await axios.get(`${DB_BASE_URL}/messages/type/compliment`)
 
-    response = JSON.stringify(
-      resp.data.map((compliment) => ({
-        type: compliment.type,
-        text: compliment.text,
-        for: compliment.for,
-      }))
-    )
+    response = JSON.stringify(resp.data.map(({ _id, text }) => `${_id} ${text}`))
   } else if (command === '/wishes') {
-    const resp = await axios.get(`${DB_BASE_URL}/messages/wish`)
+    const resp = await axios.get(`${DB_BASE_URL}/messages/type/wish`)
 
-    response = JSON.stringify(resp.data.map((wish) => ({ type: wish.type, text: wish.text, for: wish.for })))
-  } else if (command === '/usersfull') {
-    const resp = await axios.get(`${DB_BASE_URL}/users`)
-
-    response = JSON.stringify(resp.data)
-  } else if (command === '/messagesfull') {
-    const resp = await axios.get(`${DB_BASE_URL}/messages`)
-
-    response = JSON.stringify(resp.data)
-  } else if (command === '/complimentsfull') {
-    const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`)
-
-    response = JSON.stringify(resp.data)
-  } else if (command === '/wishesfull') {
-    const resp = await axios.get(`${DB_BASE_URL}/messages/wish`)
-
-    response = JSON.stringify(resp.data)
-  } else if (command === '/usersquantity') {
+    response = JSON.stringify(resp.data.map(({ _id, text }) => `${_id} ${text}`))
+  } else if (command === '/usersq') {
     const resp = await axios.get(`${DB_BASE_URL}/users`)
 
     response = resp.data.length
-  } else if (command === '/messagesquantity') {
+  } else if (command === '/messagesq') {
     const resp = await axios.get(`${DB_BASE_URL}/messages`)
 
     response = resp.data.length
-  } else if (command === '/complimentsquantity') {
+  } else if (command === '/complimentsq') {
     const resp = await axios.get(`${DB_BASE_URL}/messages/compliment`)
 
     response = resp.data.length
-  } else if (command === '/wishesquantity') {
+  } else if (command === '/wishesq') {
     const resp = await axios.get(`${DB_BASE_URL}/messages/wish`)
 
     response = resp.data.length

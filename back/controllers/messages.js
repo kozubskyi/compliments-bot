@@ -15,7 +15,7 @@ messagesController.get('/', async (req, res, next) => {
   }
 });
 
-messagesController.get('/:type', async (req, res, next) => {
+messagesController.get('/type/:type', async (req, res, next) => {
   try {
     const messages = await MessageModel.find({ type: req.params.type });
 
@@ -24,6 +24,16 @@ messagesController.get('/:type', async (req, res, next) => {
     next(err);
   }
 });
+
+messagesController.get('/for/:status', async (req, res, next) => {
+  try {
+    const messages = await MessageModel.find({ for: req.params.status })
+
+    res.status(200).send(messages)
+  } catch (err) {
+    next(err)
+  }
+})
 
 messagesController.get('/:type/:for', async (req, res, next) => {
   try {
