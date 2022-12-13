@@ -25,9 +25,9 @@ messagesController.get('/type/:type', async (req, res, next) => {
   }
 });
 
-messagesController.get('/for/:status', async (req, res, next) => {
+messagesController.get('/for/:for', async (req, res, next) => {
   try {
-    const messages = await MessageModel.find({ for: req.params.status })
+    const messages = await MessageModel.find({ for: req.params.for })
 
     res.status(200).send(messages)
   } catch (err) {
