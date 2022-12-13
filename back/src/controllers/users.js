@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const HttpErrors = require('http-errors');
 const UserModel = require('../models/user');
-const { createDate } = require('../helpers');
+const createDate = require('../helpers/create-date');
 
 const usersController = Router();
 

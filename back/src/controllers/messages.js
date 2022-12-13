@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const HttpErrors = require('http-errors');
 const MessageModel = require('../models/message');
-const { createDate } = require('../helpers');
+const createDate = require('../helpers/create-date');
 
 const messagesController = Router();
 

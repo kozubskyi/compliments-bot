@@ -5,7 +5,7 @@ const addTwoLeadingZeros = (d) => {
   return d
 }
 
-exports.createDate = function () {
+module.exports = function createDate () {
   const date = new Date()
   const Y = date.getFullYear()
   const M = addLeadingZero(date.getMonth() + 1)
