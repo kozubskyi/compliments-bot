@@ -25,7 +25,7 @@ module.exports = function handleHelpCommand(status) {
 ⭐️ Адміністраторські:
 add <type> <for> <text> - додати у базу даних нове повідомлення з type: compliment/wish, for: sweet/creator/others і будь-яким текстом <text>;
 addmessages <array> - додати в базу даних масив нових повідомлень, де кожне повідомлення повинно містити { type, for, text }
-del <text> - видалити з бази даних повідомлення з текстом <text>;
+del <key> <idOrText> - видалити з бази даних повідомлення з полем <key> (id або text) та значенням цього поля <idOrText>;
 delallmessages - видалити всі повідомлення з бази даних (не рекомендовано);
 upd <id> <field> <value> - оновити поле <field> повідомлення з id <id> в базі даних новим значенням <value>;
 mlr <text> - відправити повідомлення Олені Рак з текстом <text>;
