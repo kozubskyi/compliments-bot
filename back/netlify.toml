@@ -1,12 +1,12 @@
 [build]
-  base="./"
   functions="functions"
-  publish="build"
+  # base="./"
+  # publish="build"
 
-[dev]
-  publish="dist"
+# [dev]
+#   publish="dist"
 
 # [[redirects]]
 #   from ="/*"
-#   to = "/api/:splat"
+#   to = "/.netlify/functions/api/:splat"
 #   status = 200

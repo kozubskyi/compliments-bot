@@ -4,9 +4,9 @@
   "description": "",
   "main": "src/app.js",
   "scripts": {
-    "start": "SET NODE_ENV=development ./node_modules/.bin/netlify-lambda serve src",
-    "build": "SET NODE_ENV=production ./node_modules/.bin/netlify-lambda build src",
-    "dev": "nodemon functions/app.js"
+    "start": "./node_modules/.bin/netlify-lambda serve src",
+    "build": "./node_modules/.bin/netlify-lambda build src",
+    "dev": "nodemon src/app.js"
   },
   "repository": {
     "type": "git",
