@@ -1,8 +1,6 @@
-const axios = require('axios');
-const helpers = require('./helpers');
-const { KOZUBSKYI_CHAT_ID, LENA_RAK_CHAT_ID, DB_BASE_URL } = process.env;
-const SWEET_CHAT_ID = Number(LENA_RAK_CHAT_ID);
-const CREATOR_CHAT_ID = Number(KOZUBSKYI_CHAT_ID);
+const handleUser = require('./helpers/handle-user');
+const commandHandlers = require('./command-handlers');
+const { CREATOR_CHAT_ID } = require('./helpers/variables');
 
 async function makeResponse(bot, { firstName, lastName, username, chatId, command }) {
   try {
@@ -16,13 +14,13 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
     let cmdResp = {};
 
     if (command === '/start') {
-      cmdResp = helpers.handleStartCommand(user);
+      cmdResp = commandHandlers.handleStartCommand(user);
     } else if (command === '/compliment' || command === '/wish') {
-      cmdResp = await helpers.handleComplimentOrWishCommand(user.status, command.slice(1));
+      cmdResp = await commandHandlers.handleComplimentOrWishCommand(user.status, command.slice(1));
     } else if (command === '/help') {
-      cmdResp = await helpers.handleHelpCommand(user.status);
+      cmdResp = await commandHandlers.handleHelpCommand(user.status);
     } else {
-      cmdResp = await helpers.handleElseCommands(user.status, command);
+      cmdResp = await commandHandlers.handleElseCommands(bot, user.status, command);
     }
 
     response = cmdResp.response;
@@ -30,48 +28,20 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
 
     await bot.sendMessage(chatId, response, buttons);
 
-    chatId !== CREATOR_CHAT_ID &&
-      (await bot.sendMessage(
-        CREATOR_CHAT_ID,
-        `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і отримав(-ла) відповідь "${response}"`
-      ));
+    const creatorSuccessMessage = `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і отримав(-ла) відповідь "${response}"`;
+
+    chatId !== CREATOR_CHAT_ID && (await bot.sendMessage(CREATOR_CHAT_ID, creatorSuccessMessage));
   } catch (err) {
-    chatId !== CREATOR_CHAT_ID &&
-      (await bot.sendMessage(chatId, 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊'));
+    const userErrorMessage = 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊';
 
-    await bot.sendMessage(
-      CREATOR_CHAT_ID,
-      `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${
-        err?.response?.data?.message ?? err
-      }"`
-    );
+    chatId !== CREATOR_CHAT_ID && (await bot.sendMessage(chatId, userErrorMessage));
+
+    const creatorErrorMessage = `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${
+      err?.response?.data?.message ?? err
+    }"`;
+
+    await bot.sendMessage(CREATOR_CHAT_ID, creatorErrorMessage);
   }
-}
-
-async function handleUser({ firstName, lastName, username, chatId }) {
-  const getOrUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`;
-
-  const { data } = await axios.get(getOrUpdateUrl);
-
-  let response = null;
-
-  if (data) {
-    response = await axios.patch(getOrUpdateUrl, { messages: data.messages + 1 });
-  } else {
-    response = await axios.post(`${DB_BASE_URL}/users`, {
-      firstName,
-      lastName,
-      username,
-      chatId,
-    });
-
-    await bot.sendMessage(
-      CREATOR_CHAT_ID,
-      `ℹ️ Нового користувача "${firstName} ${lastName} <${username}> (${chatId})" додано в базу даних`
-    );
-  }
-
-  return response.data;
 }
 
 module.exports = makeResponse;

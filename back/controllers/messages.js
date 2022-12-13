@@ -30,10 +30,10 @@ messagesController.get('/:type/:for', async (req, res, next) => {
     const messages = await MessageModel.find(req.params);
     // ! В нашем случае поле for элементов в базе данных является массивом, но Монго так работает, что даже если мы в него передаем просто строку, то Монго сама делает проверку типо "имеет ли этот массив элемент со значением этой сроки"
 
-    if (!messages.length)
-      throw new HttpErrors.NotFound(
-        `Повідомлень з параметрами ${JSON.stringify(req.params)} не знайдено у базі даних`
-      );
+    // if (!messages.length)
+    //   throw new HttpErrors.NotFound(
+    //     `Повідомлень з параметрами ${JSON.stringify(req.params)} не знайдено у базі даних`
+    //   );
 
     res.status(200).send(messages);
   } catch (err) {
@@ -105,7 +105,7 @@ messagesController.patch('/reset/sendings', async (req, res, next) => {
   }
 });
 
-messagesController.delete('/:id', async (req, res, next) => {
+messagesController.delete('/id/:id', async (req, res, next) => {
   try {
     const deletedMessage = await MessageModel.findByIdAndDelete(req.params.id);
 
@@ -118,6 +118,8 @@ messagesController.delete('/:id', async (req, res, next) => {
 messagesController.delete('/text/:text', async (req, res, next) => {
   try {
     const deletedMessage = await MessageModel.findOneAndDelete({ text: req.params.text });
+
+    console.log(req.params);
 
     res.status(200).send(deletedMessage);
   } catch (err) {
