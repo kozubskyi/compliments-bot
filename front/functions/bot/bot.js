@@ -48,13 +48,13 @@ function start() {
   //   ctx.replyWithHTML('HELP')
   // })
 
-  bot.start((ctx) => {
+  bot.start(async (ctx) => {
     console.log('Received /start command')
     try {
-      return ctx.reply('Hi')
+      return await ctx.reply('Welcome')
     } catch (e) {
       console.error('error in start action:', e)
-      return ctx.reply('Error occured')
+      return await ctx.reply('Error occured')
     }
   })
 
