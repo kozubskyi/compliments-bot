@@ -9,7 +9,7 @@ dotenv.config()
 const bot = new Telegraf(process.env.BOT_TOKEN)
 
 function start() {
-  bot.start((ctx) => ctx.reply('Welcome'))
+  // bot.start((ctx) => ctx.reply('Welcome'))
   // bot.help((ctx) => ctx.reply('Send me a sticker'))
   // bot.on('sticker', (ctx) => ctx.reply('👍'))
   // bot.hears('hi', (ctx) => ctx.reply('Hey there'))
@@ -48,6 +48,16 @@ function start() {
   //   ctx.replyWithHTML('HELP')
   // })
 
+  bot.start((ctx) => {
+    console.log('Received /start command')
+    try {
+      return ctx.reply('Hi')
+    } catch (e) {
+      console.error('error in start action:', e)
+      return ctx.reply('Error occured')
+    }
+  })
+
   console.log('✅ The bot is configured and working correctly')
 }
 
@@ -58,3 +68,14 @@ bot.launch()
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'))
 process.once('SIGTERM', () => bot.stop('SIGTERM'))
+
+// AWS event handler syntax (https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html)
+exports.handler = async (event) => {
+  try {
+    await bot.handleUpdate(JSON.parse(event.body))
+    return { statusCode: 200, body: '' }
+  } catch (e) {
+    console.error('error in handler:', e)
+    return { statusCode: 400, body: 'This endpoint is meant for bot and telegram communication' }
+  }
+}
