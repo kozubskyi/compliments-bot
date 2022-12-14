@@ -5,7 +5,7 @@ async function getRandomMessage(type, status) {
   const { data } = await axios.get(`${DB_BASE_URL}/messages/${type}/${status}`);
 
   if (!data.length) {
-    const variants = { compliment: 'компліментиків', wish: 'побажаннячок' };
+    const variants = { compliment: 'компліментів', wish: 'побажань' };
 
     return { text: `Нажаль поки що я не маю ${variants[type]}, вибач 😥` };
   }
