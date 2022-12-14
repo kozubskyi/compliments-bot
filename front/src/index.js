@@ -44,8 +44,8 @@ function start() {
 
   //   bot.sendMessage(msg.chat.id, 'робе')
   // })
+
+  console.log('✅ The bot is configured and working correctly')
 }
 
 start()
-
-console.log('✅ The bot is configured and working correctly')
