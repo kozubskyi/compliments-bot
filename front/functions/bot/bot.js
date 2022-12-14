@@ -1,51 +1,60 @@
-require('dotenv').config() // Без этого кода перед require("node-telegram-bot-api") и NTBA_FIX_319 = 1 в файле .env выдает ошибку:
-// node-telegram-bot-api deprecated Automatic enabling of cancellation of promises is deprecated. In the future, you will have to enable it yourself. See https://github.com/yagop/node-telegram-bot-api/issues/319. at node:internal/modules/cjs/loader:1105:14
-// Решение: https://github.com/yagop/node-telegram-bot-api/issues/540
-
-const TelegramBot = require('node-telegram-bot-api')
+const { Telegraf, Markup } = require('telegraf')
+const dotenv = require('dotenv')
 const makeResponse = require('./make-response')
+const handleUser = require('./helpers/handle-user')
+const commandsHtml = require('./helpers/commands')
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true })
+dotenv.config()
+
+const bot = new Telegraf(process.env.BOT_TOKEN)
 
 function start() {
-  bot.setMyCommands([
-    { command: '/start', description: '👋 Привітання' },
-    { command: '/compliment', description: '💝 Комплімент' },
-    { command: '/wish', description: '✨ Побажання' },
-    { command: '/help', description: '❔ Допомога' },
-  ])
+  bot.start((ctx) => ctx.reply('Welcome'))
+  // bot.help((ctx) => ctx.reply('Send me a sticker'))
+  // bot.on('sticker', (ctx) => ctx.reply('👍'))
+  // bot.hears('hi', (ctx) => ctx.reply('Hey there'))
 
-  // Обробник отримання повідомлення
-  bot.on('message', async (msg) => {
-    await makeResponse(bot, {
-      firstName: msg.from.first_name,
-      lastName: msg.from.last_name,
-      username: msg.from.username,
-      chatId: msg.chat.id,
-      command: msg.text,
-    })
-  })
+  // bot.command('oldschool', (ctx) => ctx.reply('Hello'))
+  // bot.command('hipster', Telegraf.reply('λ'))
 
-  // Обробник кліка на кнопку
-  bot.on('callback_query', async (cbq) => {
-    await makeResponse(bot, {
-      firstName: cbq.from.first_name,
-      lastName: cbq.from.last_name,
-      username: cbq.from.username,
-      chatId: cbq.message.chat.id,
-      command: cbq.data,
-    })
-  })
+  // bot.on('text', (ctx) => ctx.reply(ctx.message.text))
 
-  // Обробник конкретного отриманого повідомлення, яке починається з "/creatortest"
-  // bot.onText(/\/creatortest/, (msg, match) => {
-  //   console.log({ msg, match })
-  //   console.log('msg.entities', msg.entities)
+  // bot.action('btn_action', (ctx) => {})
 
-  //   bot.sendMessage(msg.chat.id, 'робе')
+  // bot.on('text', async (ctx) => {
+  //   console.log(ctx)
+
+  //   // await makeResponse(bot, {
+  //   //   firstName: ctx.message.from.first_name,
+  //   //   lastName: ctx.message.from.last_name,
+  //   //   username: ctx.message.from.username,
+  //   //   chatId: ctx.message.chat.id,
+  //   //   command: ctx.message.text,
+  //   //   ctx,
+  //   // })
+  // })
+
+  // bot.help(async (ctx) => {
+  //   const firstName = ctx.message.from.first_name
+  //   const lastName = ctx.message.from.last_name
+  //   const username = ctx.message.from.username
+  //   const command = ctx.message.text
+  //   const chatId = ctx.message.chat.id
+
+  //   const user = await handleUser(bot)
+  // })
+
+  // bot.command('help', (ctx) => {
+  //   ctx.replyWithHTML('HELP')
   // })
 
   console.log('✅ The bot is configured and working correctly')
 }
 
 start()
+
+bot.launch()
+
+// Enable graceful stop
+process.once('SIGINT', () => bot.stop('SIGINT'))
+process.once('SIGTERM', () => bot.stop('SIGTERM'))

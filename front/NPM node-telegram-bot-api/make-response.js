@@ -2,7 +2,7 @@ const handleUser = require('./helpers/handle-user')
 const commandHandlers = require('./command-handlers')
 const { CREATOR_CHAT_ID } = require('./helpers/variables')
 
-async function makeResponse(bot, { firstName, lastName, username, chatId, command, ctx }) {
+async function makeResponse(bot, { firstName, lastName, username, chatId, command }) {
   try {
     let response = ''
     let buttons = {}
