@@ -1,8 +1,9 @@
 [build]
   functions="functions"
+  command = "netlify-lambda install && mkdir ./public"
 
-[template.environment]
-  BOT_TOKEN = "5553320200:AAGK238xHR20XQn2iJBdW9rW2xVJdso0o8M"
+# [template.environment]
+#   BOT_TOKEN = "5553320200:AAGK238xHR20XQn2iJBdW9rW2xVJdso0o8M"
 
 # [dev]
 #   publish="dist"
