@@ -5,7 +5,6 @@
   "main": "functions/bot/bot.js",
   "scripts": {
     "start": "node functions/bot/bot.js",
-    "build": "node functions/bot/bot.js",
     "dev": "nodemon functions/bot/bot.js"
   },
   "repository": {
