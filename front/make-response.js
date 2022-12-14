@@ -7,7 +7,7 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
     let response = ''
     let buttons = {}
 
-    const user = await handleUser({ firstName, lastName, username, chatId, command })
+    const user = await handleUser(bot, { firstName, lastName, username, chatId, command })
 
     // user.status = 'sweet' //* ⬅️ for testing (creator, sweet, others)
 
@@ -32,6 +32,8 @@ async function makeResponse(bot, { firstName, lastName, username, chatId, comman
 
     chatId !== CREATOR_CHAT_ID && (await bot.sendMessage(CREATOR_CHAT_ID, creatorSuccessMessage))
   } catch (err) {
+    console.log({ err })
+
     const userErrorMessage = 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊'
 
     chatId !== CREATOR_CHAT_ID && (await bot.sendMessage(chatId, userErrorMessage))

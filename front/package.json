@@ -7,6 +7,10 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kozubskyi/telegram-bot.git"
+  },
   "author": "Denys Kozubskyi <denys.kozubskyi@gmail.com>",
   "license": "ISC",
   "dependencies": {
