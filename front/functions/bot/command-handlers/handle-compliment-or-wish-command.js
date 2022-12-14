@@ -1,52 +1,35 @@
-const axios = require('axios')
-const { DB_BASE_URL } = process.env
+const axios = require('axios');
+const { DB_BASE_URL } = process.env;
 
 async function getRandomMessage(type, status) {
-  const { data } = await axios.get(`${DB_BASE_URL}/messages/${type}/${status}`)
+  const { data } = await axios.get(`${DB_BASE_URL}/messages/${type}/${status}`);
 
   if (!data.length) {
-    const variants = { compliment: 'компліментиків', wish: 'побажаннячок' }
+    const variants = { compliment: 'компліментиків', wish: 'побажаннячок' };
 
-    return { text: `Нажаль поки що я не маю ${variants[type]}, вибач 😥` }
+    return { text: `Нажаль поки що я не маю ${variants[type]}, вибач 😥` };
   }
 
-  const randomIndex = Math.floor(Math.random() * data.length)
+  const randomIndex = Math.floor(Math.random() * data.length);
 
-  const chosenMessage = data[randomIndex]
-  const { _id, sendings } = chosenMessage
+  const chosenMessage = data[randomIndex];
+  const { _id, sendings } = chosenMessage;
 
-  await axios.patch(`${DB_BASE_URL}/messages/${_id}`, { sendings: sendings + 1 })
+  await axios.patch(`${DB_BASE_URL}/messages/${_id}`, { sendings: sendings + 1 });
 
-  return chosenMessage
+  return chosenMessage;
 }
 
-module.exports = async function handleComplimentOrWishCommand(status, type) {
-  let response = ''
-  let buttons = {
-    reply_markup: JSON.stringify({
-      inline_keyboard: [[{ text: '✨ Побажання', callback_data: '/wish' }]],
-    }),
-  }
+module.exports = async function handleComplimentOrWishCommand(type, status) {
+  let reply = '';
 
-  if (status !== 'sweet' && type === 'compliment') {
-    response = 'Вибач, але компліменти я роблю лише Олені Рак. Для усіх інших я відправляю побажання.'
+  if (type === 'compliment' && status !== 'sweet') {
+    reply = 'Вибач, але компліменти я роблю лише Олені Рак. Для усіх інших я відправляю побажання.';
   } else {
-    const { text } = await getRandomMessage(type, status)
-    response = text
+    const { text } = await getRandomMessage(type, status);
 
-    if (status === 'sweet') {
-      buttons = {
-        reply_markup: JSON.stringify({
-          inline_keyboard: [
-            [
-              { text: '💝 Компліментик', callback_data: '/compliment' },
-              { text: '✨ Побажаннячко', callback_data: '/wish' },
-            ],
-          ],
-        }),
-      }
-    }
+    reply = text;
   }
 
-  return { response, buttons }
-}
+  return reply;
+};

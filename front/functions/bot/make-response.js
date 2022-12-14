@@ -1,49 +1,45 @@
-const handleUser = require('./helpers/handle-user')
-const commandHandlers = require('./command-handlers')
-const { CREATOR_CHAT_ID } = require('./helpers/variables')
+const handleUser = require('./helpers/handle-user');
+const commandHandlers = require('./command-handlers');
+const { CREATOR_CHAT_ID } = require('./helpers/chat-ids');
 
-async function makeResponse(bot, { firstName, lastName, username, chatId, command, ctx }) {
+async function makeResponse(ctx, msgData) {
+  const { firstName, lastName, username, chatId, value } = msgData;
+
+  let reply = '';
+
   try {
-    let response = ''
-    let buttons = {}
+    const user = await handleUser(ctx, { firstName, lastName, username, chatId });
 
-    const user = await handleUser(bot, { firstName, lastName, username, chatId, command })
+    // user.status = 'sweet'; //* ⬅️ for testing (creator, sweet, others)
 
-    // user.status = 'sweet' //* ⬅️ for testing (creator, sweet, others)
-
-    let cmdResp = {}
-
-    if (command === '/start') {
-      cmdResp = commandHandlers.handleStartCommand(user)
-    } else if (command === '/compliment' || command === '/wish') {
-      cmdResp = await commandHandlers.handleComplimentOrWishCommand(user.status, command.slice(1))
-    } else if (command === '/help') {
-      cmdResp = await commandHandlers.handleHelpCommand(user.status)
+    if (value === '/start') {
+      reply = commandHandlers.handleStartCommand(user);
+    } else if (value === '/compliment' || value === '/wish') {
+      reply = await commandHandlers.handleComplimentOrWishCommand(value.slice(1), user.status);
+    } else if (value === '/help') {
+      reply = await commandHandlers.handleHelpCommand(user.status);
     } else {
-      cmdResp = await commandHandlers.handleElseCommands(bot, user.status, command)
+      reply = await commandHandlers.handleElseCommands(ctx, user.status, value);
     }
 
-    response = cmdResp.response
-    buttons = cmdResp.buttons ?? {}
+    await ctx.replyWithHTML(`${reply}`);
 
-    await bot.sendMessage(chatId, response, buttons)
-
-    const creatorSuccessMessage = `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і отримав(-ла) відповідь "${response}"`
-
-    chatId !== CREATOR_CHAT_ID && (await bot.sendMessage(CREATOR_CHAT_ID, creatorSuccessMessage))
+    chatId !== CREATOR_CHAT_ID &&
+      (await ctx.telegram.sendMessage(
+        CREATOR_CHAT_ID,
+        `ℹ️ Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${value}" і отримав(-ла) відповідь "${reply}"`
+      ));
   } catch (err) {
-    console.log({ err })
+    chatId !== CREATOR_CHAT_ID &&
+      (await ctx.reply('Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊'));
 
-    const userErrorMessage = 'Я трошки зламався, скоро полагоджусь і повернусь 👨‍🔧⚙️😊'
-
-    chatId !== CREATOR_CHAT_ID && (await bot.sendMessage(chatId, userErrorMessage))
-
-    const creatorErrorMessage = `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${command}" і виникла помилка "${
-      err?.response?.data?.message ?? err
-    }"`
-
-    await bot.sendMessage(CREATOR_CHAT_ID, creatorErrorMessage)
+    await ctx.telegram.sendMessage(
+      CREATOR_CHAT_ID,
+      `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${reply}" і виникла помилка "${
+        err?.response?.data?.message ?? err
+      }"`
+    );
   }
 }
 
-module.exports = makeResponse
+module.exports = makeResponse;
