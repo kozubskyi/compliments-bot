@@ -26,9 +26,7 @@ usersController.get('/:id', async (req, res, next) => {
 
 usersController.get('/chatId/:chatId', async (req, res, next) => {
   try {
-    const { chatId } = req.params;
-
-    const user = await UserModel.findOne({ chatId });
+    const user = await UserModel.findOne(req.params);
 
     res.status(200).send(user);
   } catch (err) {
@@ -50,11 +48,9 @@ usersController.get('/:name/:surname', async (req, res, next) => {
 
 usersController.post('/', async (req, res, next) => {
   try {
-    const { chatId } = req.body;
+    const existing = await UserModel.findOne(req.body);
 
-    const existing = await UserModel.findOne({ chatId });
-
-    if (existing) throw new HttpErrors.Conflict(`Користувач з chatId ${chatId} вже є у базі даних`);
+    if (existing) throw new HttpErrors.Conflict(`Користувач з таким chatId вже є у базі даних`);
 
     const newUser = await UserModel.create(req.body);
 
@@ -66,9 +62,7 @@ usersController.post('/', async (req, res, next) => {
 
 usersController.patch('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    const updatedUser = await UserModel.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedUser = await UserModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
     res.status(200).send(updatedUser);
   } catch (err) {
@@ -78,9 +72,7 @@ usersController.patch('/:id', async (req, res, next) => {
 
 usersController.patch('/chatId/:chatId', async (req, res, next) => {
   try {
-    const { chatId } = req.params;
-
-    const updatedUser = await UserModel.findOneAndUpdate({ chatId }, req.body, { new: true });
+    const updatedUser = await UserModel.findOneAndUpdate(req.params, req.body, { new: true });
 
     res.status(200).send(updatedUser);
   } catch (err) {
@@ -90,9 +82,7 @@ usersController.patch('/chatId/:chatId', async (req, res, next) => {
 
 usersController.patch('/username/:username', async (req, res, next) => {
   try {
-    const { username } = req.params;
-
-    const updatedUser = await UserModel.findOneAndUpdate({ username }, req.body, { new: true });
+    const updatedUser = await UserModel.findOneAndUpdate(req.params, req.body, { new: true });
 
     res.status(200).send(updatedUser);
   } catch (err) {
@@ -102,9 +92,7 @@ usersController.patch('/username/:username', async (req, res, next) => {
 
 usersController.delete('/:id', async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    const deletedUser = await UserModel.findByIdAndDelete(id);
+    const deletedUser = await UserModel.findByIdAndDelete(req.params.id);
 
     res.status(200).send(deletedUser);
   } catch (err) {
@@ -114,9 +102,7 @@ usersController.delete('/:id', async (req, res, next) => {
 
 usersController.delete('/chatId/:chatId', async (req, res, next) => {
   try {
-    const { chatId } = req.params;
-
-    const deletedUser = await UserModel.findOneAndDelete({ chatId });
+    const deletedUser = await UserModel.findOneAndDelete(req.params);
 
     res.status(200).send(deletedUser);
   } catch (err) {
@@ -126,9 +112,7 @@ usersController.delete('/chatId/:chatId', async (req, res, next) => {
 
 usersController.delete('/username/:username', async (req, res, next) => {
   try {
-    const { username } = req.params;
-
-    const deletedUser = await UserModel.findOneAndDelete({ username });
+    const deletedUser = await UserModel.findOneAndDelete(req.params);
 
     res.status(200).send(deletedUser);
   } catch (err) {

@@ -24,14 +24,21 @@ complimentsController.get('/:id', async (req, res, next) => {
   }
 });
 
+complimentsController.get('/text/:text', async (req, res, next) => {
+  try {
+    const compliment = await ComplimentModel.findOne(req.params);
+
+    res.status(200).send(compliment);
+  } catch (err) {
+    next(err);
+  }
+});
+
 complimentsController.post('/', async (req, res, next) => {
   try {
     const existing = await ComplimentModel.findOne(req.body);
 
-    if (existing) {
-      throw new HttpErrors.Conflict(`Компліментик з таким текстом вже є у базі даних`);
-      return res.status(409).send();
-    }
+    if (existing) throw new HttpErrors.Conflict(`Компліментик з таким текстом вже є у базі даних`);
 
     const newCompliment = await ComplimentModel.create(req.body);
 

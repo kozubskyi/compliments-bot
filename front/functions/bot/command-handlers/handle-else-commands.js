@@ -18,11 +18,7 @@ async function handleCreatorCommands(ctx, value) {
   if (command === 'add') {
     const { data } = await axios.post(`${DB_BASE_URL}/compliments`, { text: rest });
 
-    if (data) {
-      reply = `✅ Компліментик додано в базу даних: ${JSON.stringify(data)}`;
-    } else {
-      reply = '⚠️ Компліментик з таким текстом вже є у базі даних';
-    }
+    reply = `✅ Компліментик додано в базу даних: ${JSON.stringify(data)}`;
   } else if (command === 'show') {
     const { data } = await axios.get(`${DB_BASE_URL}/compliments/${rest}`);
 
