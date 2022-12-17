@@ -62,46 +62,28 @@ async function handleCreatorCommands(ctx, value) {
     } else {
       reply = '⚠️ Такого користувача немає у базі даних';
     }
-  } else if (value === 'delallmessages') {
-    await axios.delete(`${DB_BASE_URL}/messages`);
+  } else if (value === 'delallcompliments') {
+    await axios.delete(`${DB_BASE_URL}/compliments`);
 
     reply = '✅ Всі компліментики видалено з бази даних';
   } else if (value === '/users') {
-    const resp = await axios.get(`${DB_BASE_URL}/users`);
+    const data = await axios.get(`${DB_BASE_URL}/users`);
 
-    reply = JSON.stringify(
-      resp.data.map(({ _id, firstName, lastName }) => `${_id} - ${firstName} ${lastName}`)
-    );
-  } else if (value === '/messages') {
-    const { data } = await axios.get(`${DB_BASE_URL}/messages`);
-
-    reply = JSON.stringify(data.map(({ _id, text }) => `${_id} ${text}`));
+    reply = JSON.stringify(data);
   } else if (value === '/compliments') {
-    const { data } = await axios.get(`${DB_BASE_URL}/messages/type/compliment`);
-
-    reply = JSON.stringify(data.map(({ _id, text }) => `${_id} ${text}`));
-  } else if (value === '/wishes') {
-    const { data } = await axios.get(`${DB_BASE_URL}/messages/type/wish`);
+    const { data } = await axios.get(`${DB_BASE_URL}/compliments`);
 
     reply = JSON.stringify(data.map(({ _id, text }) => `${_id} ${text}`));
   } else if (value === '/usersq') {
     const { data } = await axios.get(`${DB_BASE_URL}/users`);
 
-    reply = data.length;
-  } else if (value === '/messagesq') {
-    const { data } = await axios.get(`${DB_BASE_URL}/messages`);
-
-    reply = data.length;
+    reply = `${data.length}`;
   } else if (value === '/complimentsq') {
-    const { data } = await axios.get(`${DB_BASE_URL}/messages/type/compliment`);
+    const { data } = await axios.get(`${DB_BASE_URL}/compliments`);
 
-    reply = data.length;
-  } else if (value === '/wishesq') {
-    const { data } = await axios.get(`${DB_BASE_URL}/messages/type/wish`);
-
-    reply = data.length;
-  } else if (value === '/resetsendings') {
-    await axios.patch(`${DB_BASE_URL}/messages/reset/sendings`);
+    reply = `${data.length}`;
+  } else if (value === '/sendingsreset') {
+    await axios.patch(`${DB_BASE_URL}/compliments/sendings/reset`);
 
     reply = '✅ Поле sendings усіх повідомлень успішно скинуто до 0';
   } else if (value === '/test') {

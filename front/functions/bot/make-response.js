@@ -22,7 +22,7 @@ async function makeResponse(ctx, msgData) {
       reply = await commandHandlers.handleElseCommands(ctx, user.status, value);
     }
 
-    await ctx.replyWithHTML(`${reply}`);
+    await ctx.replyWithHTML(reply);
 
     chatId !== CREATOR_CHAT_ID &&
       (await ctx.telegram.sendMessage(
@@ -35,7 +35,7 @@ async function makeResponse(ctx, msgData) {
 
     await ctx.telegram.sendMessage(
       CREATOR_CHAT_ID,
-      `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${reply}" і виникла помилка "${
+      `❌ Помилка! Користувач "${firstName} ${lastName} <${username}> (${chatId})" відправив(-ла) повідомлення "${value}" і виникла помилка "${
         err?.response?.data?.message ?? err
       }"`
     );
