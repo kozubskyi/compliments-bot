@@ -63,8 +63,8 @@ async function handleCreatorCommands(ctx, value) {
     } else {
       reply = '⚠️ Такого користувача немає у базі даних'
     }
-  } else if (value === 'users' || value === 'compliments') {
-    const { data } = await axios.get(`${DB_BASE_URL}/${value}`)
+  } else if (command === 'users' || command === 'compliments') {
+    const { data } = await axios.get(`${DB_BASE_URL}/${command}`)
 
     reply = JSON.stringify(data.map.slice(rest * 20 - 20, rest * 20))
   } else if (value === '/usersq' || value === '/complimentsq') {
