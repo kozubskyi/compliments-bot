@@ -63,12 +63,20 @@ async function handleCreatorCommands(ctx, value) {
     } else {
       reply = '⚠️ Такого користувача немає у базі даних'
     }
-  } else if (command === 'users' || command === 'compliments') {
-    const { data } = await axios.get(`${DB_BASE_URL}/${command}`)
+  } else if (command === 'u' || command === 'c') {
+    let collection = ''
+    if (command === 'u') collection = 'users'
+    if (command === 'c') collection = 'compliments'
+
+    const { data } = await axios.get(`${DB_BASE_URL}/${collection}`)
 
     reply = JSON.stringify(data.slice(rest * 20 - 20, rest * 20))
-  } else if (value === '/usersq' || value === '/complimentsq') {
-    const { data } = await axios.get(`${DB_BASE_URL}/${value.slice(1, value.length - 1)}`)
+  } else if (value === '/uq' || value === '/cq') {
+    let collection = ''
+    if (command === '/uq') collection = 'users'
+    if (command === '/cq') collection = 'compliments'
+
+    const { data } = await axios.get(`${DB_BASE_URL}/${collection}`)
 
     reply = `${data.length}`
   } else if (value === '/test') {
