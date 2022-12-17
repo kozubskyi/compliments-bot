@@ -29,7 +29,7 @@ module.exports = async function handleComplimentCommand(status) {
 
     reply = text;
   } else {
-    reply = 'Вибач, але компліментики я роблю лише Олені Рак.';
+    reply = 'Вибач, але компліментики я роблю лише Олені Рак 🤷‍♂️'
   }
 
   return reply;
