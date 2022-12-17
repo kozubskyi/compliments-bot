@@ -67,7 +67,7 @@ async function handleCreatorCommands(ctx, value) {
 
     reply = '✅ Всі компліментики видалено з бази даних';
   } else if (value === '/users') {
-    const data = await axios.get(`${DB_BASE_URL}/users`);
+    const { data } = await axios.get(`${DB_BASE_URL}/users`);
 
     reply = JSON.stringify(data);
   } else if (value === '/compliments') {
