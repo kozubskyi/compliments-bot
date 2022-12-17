@@ -28,8 +28,10 @@ complimentsController.post('/', async (req, res, next) => {
   try {
     const existing = await ComplimentModel.findOne(req.body);
 
-    if (existing)
+    if (existing) {
       throw new HttpErrors.Conflict(`Компліментик з таким текстом вже є у базі даних`);
+      return res.status(409).send();
+    }
 
     const newCompliment = await ComplimentModel.create(req.body);
 
