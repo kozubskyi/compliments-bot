@@ -13,7 +13,10 @@ module.exports = async function handleUser(ctx, userData) {
   let response = {};
 
   if (data) {
-    response = await axios.patch(getOrUpdateUrl, { messages: data.messages + 1 });
+    response = await axios.patch(getOrUpdateUrl, {
+      messages: data.messages + 1,
+      lastMessage: Date.now(),
+    });
   } else {
     let status = '';
 
