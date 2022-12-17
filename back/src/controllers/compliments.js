@@ -29,7 +29,7 @@ complimentsController.post('/', async (req, res, next) => {
     const existing = await ComplimentModel.findOne(req.body);
 
     if (existing)
-      throw new HttpErrors.Conflict(`Компліментик з текстом "${req.body.text}" вже є у базі даних`);
+      throw new HttpErrors.Conflict(`Компліментик з таким текстом вже є у базі даних`);
 
     const newCompliment = await ComplimentModel.create(req.body);
 
