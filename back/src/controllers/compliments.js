@@ -1,7 +1,6 @@
 const { Router } = require('express');
 const HttpErrors = require('http-errors');
 const ComplimentModel = require('../models/compliment');
-const createDate = require('../helpers/create-date');
 
 const complimentsController = Router();
 
