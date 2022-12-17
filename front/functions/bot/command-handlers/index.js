@@ -1,6 +1,6 @@
 module.exports = {
   handleStartCommand: require('./handle-start-command'),
-  handleComplimentOrWishCommand: require('./handle-compliment-or-wish-command'),
+  handleComplimentCommand: require('./handle-compliment-command'),
   handleHelpCommand: require('./handle-help-command'),
   handleElseCommands: require('./handle-else-commands'),
 };

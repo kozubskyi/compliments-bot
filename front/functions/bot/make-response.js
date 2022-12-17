@@ -14,8 +14,8 @@ async function makeResponse(ctx, msgData) {
 
     if (value === '/start') {
       reply = commandHandlers.handleStartCommand(user);
-    } else if (value === '/compliment' || value === '/wish') {
-      reply = await commandHandlers.handleComplimentOrWishCommand(value.slice(1), user.status);
+    } else if (value === '/compliment') {
+      reply = await commandHandlers.handleComplimentCommand(user.status);
     } else if (value === '/help') {
       reply = await commandHandlers.handleHelpCommand(user.status);
     } else {
