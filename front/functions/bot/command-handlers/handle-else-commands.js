@@ -1,6 +1,6 @@
 const axios = require('axios')
 const { DB_BASE_URL } = process.env
-const { SWEET_CHAT_ID } = require('../helpers/chat-ids')
+const { SWEET_CHAT_ID } = require('../helpers/constants')
 
 function separateFirstWord(msg) {
   const msgArr = msg.split(' ')
