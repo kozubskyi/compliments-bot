@@ -1,6 +1,6 @@
 const handleUser = require('./helpers/handle-user')
 const commandHandlers = require('./command-handlers')
-const { CREATOR_USERNAME, CREATOR_CHAT_ID } = require('./helpers/constants')
+const { BOT_USERNAME, CREATOR_USERNAME, CREATOR_CHAT_ID } = require('./helpers/constants')
 
 async function makeResponse(ctx, msgData) {
   const { firstName, lastName, username, chatId, value } = msgData
@@ -12,11 +12,11 @@ async function makeResponse(ctx, msgData) {
 
     // user.status = 'sweet'; //* ⬅️ for testing (creator, sweet, others)
 
-    if (value === '/start') {
+    if (value === '/start' || value === `/start@${BOT_USERNAME}`) {
       reply = commandHandlers.handleStartCommand(user)
-    } else if (value === '/compliment') {
+    } else if (value === '/compliment' || value === `/compliment@${BOT_USERNAME}`) {
       reply = await commandHandlers.handleComplimentCommand(user.status)
-    } else if (value === '/help') {
+    } else if (value === '/help' || value === `help@${BOT_USERNAME}`) {
       reply = await commandHandlers.handleHelpCommand(user.status)
     } else {
       reply = await commandHandlers.handleElseCommands(ctx, user.status, value)
