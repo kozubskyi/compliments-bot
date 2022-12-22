@@ -6,7 +6,7 @@ const { CREATOR_USERNAME, CREATOR_CHAT_ID, SWEET_CHAT_ID } = require('./constant
 module.exports = async function handleUser(ctx, userData) {
   const { firstName, lastName, username, chatId } = userData
 
-  const getOrUpdateUrl = `${DB_BASE_URL}/users/chatId/${chatId}`
+  const getOrUpdateUrl = `${DB_BASE_URL}/users/username/${username}`
 
   const { data } = await axios.get(getOrUpdateUrl)
 
