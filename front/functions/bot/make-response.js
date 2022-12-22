@@ -17,7 +17,7 @@ async function makeResponse(ctx, msgData) {
     } else if (value === '/compliment' || value === `/compliment@${BOT_USERNAME}`) {
       reply = await commandHandlers.handleComplimentCommand(user.status)
     } else if (value === '/help' || value === `/help@${BOT_USERNAME}`) {
-      reply = await commandHandlers.handleHelpCommand(user)
+      reply = await commandHandlers.handleHelpCommand(user.status, chatId)
     } else {
       reply = await commandHandlers.handleElseCommands(ctx, user.status, value)
     }
