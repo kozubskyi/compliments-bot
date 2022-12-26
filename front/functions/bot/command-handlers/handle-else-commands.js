@@ -39,7 +39,7 @@ async function handleCreatorCommands(ctx, value) {
     const [field, newValue] = separateFirstWord(fieldAndNewValue)
 
     const { data } = await axios.patch(`${DB_BASE_URL}/${collection}s/${id}`, {
-      [field]: JSON.parse(newValue),
+      [field]: newValue,
     })
 
     if (data) {
