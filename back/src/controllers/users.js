@@ -34,6 +34,16 @@ usersController.get('/chatId/:chatId', async (req, res, next) => {
   }
 });
 
+usersController.get('/username/:username', async (req, res, next) => {
+  try {
+    const user = await UserModel.findOne(req.params)
+
+    res.status(200).send(user)
+  } catch (err) {
+    next(err)
+  }
+})
+
 usersController.get('/:name/:surname', async (req, res, next) => {
   try {
     const { name, surname } = req.params;
