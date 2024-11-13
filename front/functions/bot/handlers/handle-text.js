@@ -15,7 +15,7 @@ async function handleCreatorCommands(ctx) {
 
 	const [command, rest] = separateFirstWord(ctx.message.text)
 
-	const { DB_BASE_URL } = process.env
+	const { DB_BASE_URL, LENA_RAK_CHAT_ID } = process.env
 
 	if (command === 'add') {
 		const { data } = await axios.post(`${DB_BASE_URL}/compliments`, { text: rest })
@@ -50,7 +50,7 @@ async function handleCreatorCommands(ctx) {
 			reply = `⚠️ Компліментика з id ${id} немає в базі даних`
 		}
 	} else if (command === 'mlr') {
-		await ctx.telegram.sendMessage(SWEET_CHAT_ID, rest)
+		await ctx.telegram.sendMessage(Number(LENA_RAK_CHAT_ID), rest)
 
 		reply = '✅ Повідомлення Лєнусічкє відправлено'
 	} else if (command === 'msg') {
